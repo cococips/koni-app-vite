@@ -1,0 +1,178 @@
+[
+  {
+    "id": "cabor-001",
+    "nama": "Atletik",
+    "induk": "PASI",
+    "singkatan": "ATL",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-002",
+    "nama": "Bulutangkis",
+    "induk": "PBSI",
+    "singkatan": "BDM",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-003",
+    "nama": "Pencak Silat",
+    "induk": "IPSI",
+    "singkatan": "PS",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-004",
+    "nama": "Taekwondo",
+    "induk": "TI",
+    "singkatan": "TKD",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-005",
+    "nama": "Karate",
+    "induk": "FORKI",
+    "singkatan": "KRT",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-006",
+    "nama": "Renang",
+    "induk": "PRSI",
+    "singkatan": "RNM",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-007",
+    "nama": "Bola Voli",
+    "induk": "PBVSI",
+    "singkatan": "BVL",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-008",
+    "nama": "Tenis Meja",
+    "induk": "PTMSI",
+    "singkatan": "TM",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-009",
+    "nama": "Panahan",
+    "induk": "Perpani",
+    "singkatan": "PNH",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-010",
+    "nama": "Senam",
+    "induk": "PERSANI",
+    "singkatan": "SNM",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-011",
+    "nama": "Tinju",
+    "induk": "Pertina",
+    "singkatan": "TJU",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-012",
+    "nama": "Judo",
+    "induk": "PJI",
+    "singkatan": "JDO",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-013",
+    "nama": "Angkat Besi",
+    "induk": "PABSI",
+    "singkatan": "AB",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-014",
+    "nama": "Sepak Bola",
+    "induk": "PSSI",
+    "singkatan": "SB",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-015",
+    "nama": "Bola Basket",
+    "induk": "Perbasi",
+    "singkatan": "BKT",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-016",
+    "nama": "Gulat",
+    "induk": "PGSI",
+    "singkatan": "GLT",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-017",
+    "nama": "Wushu",
+    "induk": "WI",
+    "singkatan": "WSH",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-018",
+    "nama": "Catur",
+    "induk": "Percasi",
+    "singkatan": "CTR",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-019",
+    "nama": "Panjat Tebing",
+    "induk": "FPTI",
+    "singkatan": "PT",
+    "status": "aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-020",
+    "nama": "Muaythai",
+    "induk": "PMT",
+    "singkatan": "MT",
+    "status": "tidak_aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-021",
+    "nama": "Kempo",
+    "induk": "PERKEMI",
+    "singkatan": "KMP",
+    "status": "tidak_aktif",
+    "created_at": "2024-01-10"
+  },
+  {
+    "id": "cabor-022",
+    "nama": "Biliar",
+    "induk": "PBI",
+    "singkatan": "BLR",
+    "status": "tidak_aktif",
+    "created_at": "2024-01-10"
+  }
+]
