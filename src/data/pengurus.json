@@ -1,0 +1,62 @@
+[
+  {
+    "id": "pngs-001",
+    "nama": "H. Slamet Riyadi, S.H., M.Hum.",
+    "jabatan": "Ketua Umum",
+    "periode": "2022-2026",
+    "foto": null,
+    "urutan": 1,
+    "published": true,
+    "created_at": "2024-01-01"
+  },
+  {
+    "id": "pngs-002",
+    "nama": "Drs. Bambang Supriyanto, M.Pd.",
+    "jabatan": "Wakil Ketua I",
+    "periode": "2022-2026",
+    "foto": null,
+    "urutan": 2,
+    "published": true,
+    "created_at": "2024-01-01"
+  },
+  {
+    "id": "pngs-003",
+    "nama": "Ir. Hendra Gunawan, M.T.",
+    "jabatan": "Wakil Ketua II",
+    "periode": "2022-2026",
+    "foto": null,
+    "urutan": 3,
+    "published": true,
+    "created_at": "2024-01-01"
+  },
+  {
+    "id": "pngs-004",
+    "nama": "Triani Budi Lestari, S.E.",
+    "jabatan": "Wakil Sekretaris Umum",
+    "periode": "2022-2026",
+    "foto": null,
+    "urutan": 4,
+    "published": true,
+    "created_at": "2024-01-01"
+  },
+  {
+    "id": "pngs-005",
+    "nama": "Agus Priyono, S.E.",
+    "jabatan": "Bendahara Umum",
+    "periode": "2022-2026",
+    "foto": null,
+    "urutan": 5,
+    "published": true,
+    "created_at": "2024-01-01"
+  },
+  {
+    "id": "pngs-006",
+    "nama": "Sri Wahyuni, S.Or.",
+    "jabatan": "Kabid Pembinaan & Prestasi",
+    "periode": "2022-2026",
+    "foto": null,
+    "urutan": 6,
+    "published": true,
+    "created_at": "2024-01-01"
+  }
+]

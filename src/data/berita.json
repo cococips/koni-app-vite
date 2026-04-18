@@ -1,0 +1,46 @@
+[
+  {
+    "id": "brt-001",
+    "judul": "KONI Banyumas Raih 12 Medali di Porprov Jateng 2023",
+    "ringkasan": "Kontingen KONI Kabupaten Banyumas berhasil meraih total 12 medali pada ajang Pekan Olahraga Provinsi Jawa Tengah 2023 yang digelar di Semarang.",
+    "isi": "Kontingen KONI Kabupaten Banyumas tampil membanggakan pada Pekan Olahraga Provinsi Jawa Tengah 2023. Dengan mengirimkan lebih dari 80 atlet dari berbagai cabang olahraga, Banyumas berhasil mengumpulkan 4 emas, 5 perak, dan 3 perunggu.",
+    "kategori": "Prestasi",
+    "penulis": "Admin KONI",
+    "foto": null,
+    "published": true,
+    "created_at": "2024-01-15"
+  },
+  {
+    "id": "brt-002",
+    "judul": "Pembinaan Atlet Muda Banyumas Dimulai Tahun 2024",
+    "ringkasan": "KONI Banyumas resmi membuka program pembinaan atlet muda usia 10-17 tahun untuk menjaring bibit-bibit potensial di berbagai cabang olahraga.",
+    "isi": "Program pembinaan atlet muda KONI Banyumas tahun 2024 resmi dibuka dengan target merekrut 200 atlet dari seluruh kecamatan. Program ini fokus pada cabor atletik, bulutangkis, pencak silat, dan renang.",
+    "kategori": "Program",
+    "penulis": "Admin KONI",
+    "foto": null,
+    "published": true,
+    "created_at": "2024-02-01"
+  },
+  {
+    "id": "brt-003",
+    "judul": "Atlet Panahan Banyumas Wakili Indonesia di Kejuaraan Asia",
+    "ringkasan": "Nadia Febriana, atlet panahan putri KONI Banyumas, terpilih mewakili Indonesia dalam Kejuaraan Panahan Asia 2024 di Korea Selatan.",
+    "isi": "Nadia Febriana (20), atlet panahan andalan KONI Kabupaten Banyumas, resmi bergabung dengan tim nasional Indonesia untuk mengikuti Kejuaraan Panahan Asia 2024 yang berlangsung di Seoul, Korea Selatan bulan Juni mendatang.",
+    "kategori": "Prestasi",
+    "penulis": "Admin KONI",
+    "foto": null,
+    "published": true,
+    "created_at": "2024-03-10"
+  },
+  {
+    "id": "brt-004",
+    "judul": "Rapat Koordinasi Cabor Se-Kabupaten Banyumas",
+    "ringkasan": "KONI Banyumas menggelar rapat koordinasi dengan seluruh pengurus cabang olahraga untuk persiapan menghadapi Porprov Jateng 2027.",
+    "isi": "Sebanyak 22 pengurus cabang olahraga hadir dalam rapat koordinasi yang digelar di sekretariat KONI Banyumas. Rapat membahas program latihan, anggaran, dan target medali untuk Porprov 2027.",
+    "kategori": "Organisasi",
+    "penulis": "Admin KONI",
+    "foto": null,
+    "published": false,
+    "created_at": "2024-04-05"
+  }
+]

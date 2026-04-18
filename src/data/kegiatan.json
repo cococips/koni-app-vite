@@ -1,0 +1,35 @@
+[
+  {
+    "id": "kgt-001",
+    "nama": "Seleksi Atlet Porprov Jateng 2027",
+    "deskripsi": "Seleksi terbuka untuk seluruh atlet Kabupaten Banyumas yang ingin mewakili daerah pada Pekan Olahraga Provinsi Jawa Tengah 2027. Diikuti oleh semua cabang olahraga yang terdaftar di KONI.",
+    "tanggal_mulai": "2024-05-15",
+    "tanggal_selesai": "2024-05-30",
+    "lokasi": "GOR Satria Purwokerto",
+    "status": "upcoming",
+    "published": true,
+    "created_at": "2024-04-01"
+  },
+  {
+    "id": "kgt-002",
+    "nama": "Open Tournament Banyumas Championship 2024",
+    "deskripsi": "Turnamen olahraga terbuka tingkat kabupaten untuk cabor bulutangkis, tenis meja, dan karate. Terbuka untuk umum se-eks Karesidenan Banyumas.",
+    "tanggal_mulai": "2024-06-08",
+    "tanggal_selesai": "2024-06-10",
+    "lokasi": "GOR Kaliputih Banyumas",
+    "status": "upcoming",
+    "published": true,
+    "created_at": "2024-04-15"
+  },
+  {
+    "id": "kgt-003",
+    "nama": "Rapat Kerja Tahunan KONI Banyumas 2024",
+    "deskripsi": "Rapat kerja tahunan dihadiri seluruh pengurus KONI dan perwakilan cabang olahraga untuk evaluasi program tahun berjalan dan penyusunan program kerja tahun depan.",
+    "tanggal_mulai": "2024-07-20",
+    "tanggal_selesai": "2024-07-20",
+    "lokasi": "Sekretariat KONI Kab. Banyumas",
+    "status": "upcoming",
+    "published": true,
+    "created_at": "2024-04-20"
+  }
+]

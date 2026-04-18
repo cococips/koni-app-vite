@@ -1,0 +1,26 @@
+[
+  {
+    "id": "pngm-001",
+    "judul": "Pendaftaran Atlet Porprov Jateng 2027 Dibuka",
+    "isi": "KONI Kabupaten Banyumas membuka pendaftaran atlet untuk seleksi Pekan Olahraga Provinsi Jawa Tengah 2027. Pendaftaran dibuka mulai 1 Mei hingga 31 Juli 2024 melalui masing-masing pengurus cabor.",
+    "tipe": "penting",
+    "published": true,
+    "created_at": "2024-04-01"
+  },
+  {
+    "id": "pngm-002",
+    "judul": "Perubahan Jadwal Latihan Bulanan - Mei 2024",
+    "isi": "Sehubungan dengan libur nasional, jadwal latihan terpusat bulan Mei 2024 mengalami penyesuaian. Harap seluruh atlet dan pelatih memperhatikan jadwal terbaru yang diedarkan melalui pengurus cabor masing-masing.",
+    "tipe": "info",
+    "published": true,
+    "created_at": "2024-04-20"
+  },
+  {
+    "id": "pngm-003",
+    "judul": "Verifikasi Data Atlet dan Pelatih 2024",
+    "isi": "Seluruh cabang olahraga diwajibkan melakukan verifikasi dan pembaruan data atlet serta pelatih paling lambat tanggal 30 April 2024. Data digunakan sebagai dasar penyusunan anggaran pembinaan 2025.",
+    "tipe": "penting",
+    "published": true,
+    "created_at": "2024-04-10"
+  }
+]

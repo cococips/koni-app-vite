@@ -1,0 +1,56 @@
+[
+  {
+    "id": "glr-001",
+    "judul": "Upacara Pembukaan Porprov Jateng 2023",
+    "deskripsi": "Momen upacara pembukaan kontingen KONI Banyumas di Porprov Jateng 2023, Semarang.",
+    "url_foto": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&q=80",
+    "kategori": "Kejuaraan",
+    "published": true,
+    "created_at": "2023-09-10"
+  },
+  {
+    "id": "glr-002",
+    "judul": "Latihan Rutin Cabor Atletik",
+    "deskripsi": "Sesi latihan rutin atlet atletik KONI Banyumas di Stadion Satria Purwokerto.",
+    "url_foto": "https://images.unsplash.com/photo-1532444458054-01a7dd3e9fca?w=800&q=80",
+    "kategori": "Latihan",
+    "published": true,
+    "created_at": "2024-02-15"
+  },
+  {
+    "id": "glr-003",
+    "judul": "Penyerahan Medali Porprov 2023",
+    "deskripsi": "Momen penyerahan medali kepada atlet berprestasi KONI Banyumas di Porprov Jateng 2023.",
+    "url_foto": "https://images.unsplash.com/photo-1569698840567-45e74c77abc0?w=800&q=80",
+    "kategori": "Kejuaraan",
+    "published": true,
+    "created_at": "2023-09-20"
+  },
+  {
+    "id": "glr-004",
+    "judul": "Open Tournament Bulutangkis Banyumas",
+    "deskripsi": "Suasana pertandingan Open Tournament Bulutangkis se-Banyumas 2024.",
+    "url_foto": "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80",
+    "kategori": "Kejuaraan",
+    "published": true,
+    "created_at": "2024-03-05"
+  },
+  {
+    "id": "glr-005",
+    "judul": "Pelatihan Pelatih Bersertifikat",
+    "deskripsi": "Program pelatihan dan sertifikasi pelatih olahraga KONI Banyumas bersama KONI Jawa Tengah.",
+    "url_foto": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80",
+    "kategori": "Program",
+    "published": true,
+    "created_at": "2024-01-20"
+  },
+  {
+    "id": "glr-006",
+    "judul": "Seleksi Atlet Muda Banyumas 2024",
+    "deskripsi": "Proses seleksi atlet muda dari berbagai kecamatan se-Kabupaten Banyumas.",
+    "url_foto": "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80",
+    "kategori": "Program",
+    "published": false,
+    "created_at": "2024-04-01"
+  }
+]
