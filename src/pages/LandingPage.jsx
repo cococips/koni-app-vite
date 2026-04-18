@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useBerita }     from '../context/BeritaContext'
 import { usePengumuman } from '../context/PengumumanContext'
 import { useKegiatan }   from '../context/KegiatanContext'
@@ -88,87 +88,8 @@ function ModalPengumuman({ item, onClose }) {
   )
 }
 
-/* ─── Navbar ─────────────────────────────────────────────────────────────── */
-function Navbar({ navigate }) {
-  const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 10)
-    window.addEventListener('scroll', h)
-    return () => window.removeEventListener('scroll', h)
-  }, [])
-
-  const links = [
-    { label: 'Beranda',  href: '#beranda'  },
-    { label: 'Tentang',  href: '#tentang'  },
-    { label: 'Galeri',   href: '#galeri'   },
-    { label: 'Berita',   href: '#berita'   },
-    { label: 'Event',    href: '#kegiatan' },
-    { label: 'Pengurus', href: '#pengurus' },
-    { label: 'Kontak',   href: '#footer'   },
-  ]
-
-  return (
-    <nav className={`sticky top-0 z-40 bg-white transition-shadow ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
-      <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-16">
-        {/* Logo */}
-        <a href="#beranda" className="flex items-center gap-3">
-          <img 
-  src="../../public/logo_koni.png" 
-  alt="Logo KONI" 
-  className="w-16 h-16 object-contain flex-shrink-0" 
-/>
-          <div className="hidden sm:block">
-            <p className="font-black text-gray-900 text-sm leading-tight">KONI</p>
-            <p className="text-xs text-gray-400 leading-tight">Kab. Banyumas</p>
-          </div>
-        </a>
-
-        {/* Desktop */}
-        <div className="hidden md:flex items-center gap-1">
-          {links.map(l => (
-            <a key={l.label} href={l.href}
-               className="px-3 py-2 text-sm text-gray-600 hover:text-red-600 font-medium transition-colors rounded-lg hover:bg-red-50">
-              {l.label}
-            </a>
-          ))}
-          <button onClick={() => navigate('/login')}
-            className="ml-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors">
-            Admin
-          </button>
-        </div>
-
-        {/* Mobile toggle */}
-        <button className="md:hidden p-2 text-gray-600" onClick={() => setOpen(o => !o)}>
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d={open ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'} />
-          </svg>
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      {open && (
-        <div className="md:hidden border-t bg-white px-4 py-3 space-y-1 shadow-lg">
-          {links.map(l => (
-            <a key={l.label} href={l.href} onClick={() => setOpen(false)}
-               className="block px-3 py-2 text-sm text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg">
-              {l.label}
-            </a>
-          ))}
-          <button onClick={() => navigate('/login')}
-            className="w-full mt-1 px-3 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg">
-            Portal Admin
-          </button>
-        </div>
-      )}
-    </nav>
-  )
-}
-
-/* ─── Section Header (mirip koni.or.id) ─────────────────────────────────── */
-function SectionHeader({ emoji, tag, title, href, hrefLabel = 'Lihat semua →' }) {
+/* ─── Section Header ────────────────────────────────────────────────────── */
+function SectionHeader({ emoji, tag, title, to, hrefLabel = 'Lihat semua →' }) {
   return (
     <div className="flex items-end justify-between mb-8">
       <div>
@@ -177,10 +98,10 @@ function SectionHeader({ emoji, tag, title, href, hrefLabel = 'Lihat semua →' 
         </p>
         <h2 className="text-2xl md:text-3xl font-black text-gray-900">{title}</h2>
       </div>
-      {href && (
-        <a href={href} className="text-sm text-red-600 font-semibold hover:underline whitespace-nowrap">
+      {to && (
+        <Link to={to} className="text-sm text-red-600 font-semibold hover:underline whitespace-nowrap">
           {hrefLabel}
-        </a>
+        </Link>
       )}
     </div>
   )
@@ -188,7 +109,6 @@ function SectionHeader({ emoji, tag, title, href, hrefLabel = 'Lihat semua →' 
 
 /* ─── Main Page ──────────────────────────────────────────────────────────── */
 export default function LandingPage() {
-  const navigate = useNavigate()
   const [selectedPengumuman, setSelectedPengumuman] = useState(null)
 
   const { beritaPublished }       = useBerita()
@@ -203,10 +123,9 @@ export default function LandingPage() {
   const totalMedali = statMedali.emas + statMedali.perak + statMedali.perunggu
 
   return (
-    <div className="min-h-screen bg-white font-sans">
+    <div className="bg-white font-sans">
       <style>{TICKER_CSS}</style>
 
-      <Navbar navigate={navigate} />
       <PengumumanTicker items={pengumuman} onClickItem={setSelectedPengumuman} />
       <ModalPengumuman item={selectedPengumuman} onClose={() => setSelectedPengumuman(null)} />
 
@@ -336,7 +255,7 @@ export default function LandingPage() {
       {kegiatan.length > 0 && (
         <section id="kegiatan" className="py-20 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="🎉" tag="Event Olahraga" title="Event – Event KONI" href="#kegiatan" hrefLabel="Lihat semua →" />
+            <SectionHeader emoji="🎉" tag="Event Olahraga" title="Event – Event KONI" to="/kegiatan" hrefLabel="Lihat semua →" />
             <div className="grid md:grid-cols-3 gap-5">
               {kegiatan.slice(0, 3).map(k => (
                 <div key={k.id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow group">
@@ -380,7 +299,7 @@ export default function LandingPage() {
       {beritaPublished.length > 0 && (
         <section id="berita" className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="📰" tag="Info Terbaru" title="Berita Terkini" href="#berita" hrefLabel="Lihat semua →" />
+            <SectionHeader emoji="📰" tag="Info Terbaru" title="Berita Terkini" to="/berita" hrefLabel="Lihat semua →" />
             <div className="space-y-3">
               {beritaPublished.slice(0, 5).map((b, i) => (
                 <div key={b.id}
@@ -414,7 +333,7 @@ export default function LandingPage() {
       {galeri.length > 0 && (
         <section id="galeri" className="py-20 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="🖼️" tag="Koleksi Terbaru" title="Galeri KONI" href="#galeri" hrefLabel="Lihat semua →" />
+            <SectionHeader emoji="🖼️" tag="Koleksi Terbaru" title="Galeri KONI" to="/galeri" hrefLabel="Lihat semua →" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {galeri.slice(0, 8).map((g, i) => (
                 <div key={g.id}
@@ -466,58 +385,6 @@ export default function LandingPage() {
         </section>
       )}
 
-      {/* ── FOOTER ───────────────────────────────────────────────────────── */}
-      <footer id="footer" className="bg-gray-900 text-gray-400">
-        <div className="max-w-6xl mx-auto px-4 py-14">
-          <div className="grid md:grid-cols-4 gap-8 mb-10">
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center">
-                  <span className="text-white font-black text-lg">K</span>
-                </div>
-                <div>
-                  <p className="text-white font-black">KONI Kabupaten Banyumas</p>
-                  <p className="text-xs">Komite Olahraga Nasional Indonesia</p>
-                </div>
-              </div>
-              <p className="text-sm leading-relaxed max-w-xs">
-                Membina atlet, mencetak juara, dan mengharumkan nama Kabupaten Banyumas di kancah olahraga nasional dan internasional.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-white font-bold text-sm mb-4">Navigasi</h4>
-              <div className="space-y-2 text-sm">
-                {[
-                  { label: 'Beranda',  href: '#beranda'  },
-                  { label: 'Tentang',  href: '#tentang'  },
-                  { label: 'Galeri',   href: '#galeri'   },
-                  { label: 'Berita',   href: '#berita'   },
-                  { label: 'Event',    href: '#kegiatan' },
-                  { label: 'Pengurus', href: '#pengurus' },
-                ].map(l => (
-                  <a key={l.label} href={l.href} className="block hover:text-white transition-colors">{l.label}</a>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="text-white font-bold text-sm mb-4">Kontak</h4>
-              <div className="space-y-2 text-sm">
-                <p>Sekretariat KONI Kab. Banyumas</p>
-                <p>Purwokerto, Jawa Tengah</p>
-                <p>Indonesia</p>
-              </div>
-              <button onClick={() => navigate('/login')}
-                className="mt-5 w-full px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-lg transition-colors">
-                Portal Admin
-              </button>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs">
-            <p>© 2024 KONI Kabupaten Banyumas. All rights reserved.</p>
-            <p>Sistem Informasi KONI · v1.0</p>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
