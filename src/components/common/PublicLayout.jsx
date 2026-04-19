@@ -11,10 +11,10 @@ const NAV_LINKS = [
 ]
 
 function Logo({ size = 'md' }) {
-  const dim = size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'
+  const dim = size === 'sm' ? 'w-8 h-8' : 'w-16 h-16'
   return (
     <img
-      src="/logo.png"
+      src="../../../public/logo_koni.png"
       alt="Logo KONI Kabupaten Banyumas"
       className={`${dim} object-contain`}
       onError={e => {
