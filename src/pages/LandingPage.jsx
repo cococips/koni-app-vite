@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useBerita }     from '../context/BeritaContext'
 import { usePengumuman } from '../context/PengumumanContext'
 import { useKegiatan }   from '../context/KegiatanContext'
-import { usePengurus }   from '../context/PengurusContext'
 import { useGaleri }     from '../context/GaleriContext'
 import { useCabor }      from '../context/CaborContext'
 import { useAtlet }      from '../context/AtletContext'
@@ -38,23 +37,21 @@ function PengumumanTicker({ items }) {
                   <span key={`${n}-${p.id}`} className="inline-flex items-center gap-6">
                     <button onClick={() => setSelected(p)}
                       className="hover:text-yellow-200 hover:underline transition-colors">
-                      📢 {p.judul}
+                      {p.judul}
                     </button>
-                    {i < items.length - 1 && <span className="text-red-400 text-lg leading-none">·</span>}
+                    {i < items.length - 1 && <span className="text-red-400">·</span>}
                   </span>
                 ))}
               </span>
             ))}
           </div>
         </div>
-        <button
-          onClick={() => navigate('/pengumuman')}
+        <button onClick={() => navigate('/pengumuman')}
           className="flex-shrink-0 bg-red-800 hover:bg-red-900 px-4 text-xs font-semibold whitespace-nowrap transition-colors">
-          Lihat semua →
+          Lihat semua
         </button>
       </div>
 
-      {/* Modal pengumuman */}
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelected(null)} />
@@ -62,7 +59,7 @@ function PengumumanTicker({ items }) {
             <div className={`px-6 py-4 flex items-start justify-between gap-4 ${selected.tipe === 'penting' ? 'bg-red-600' : 'bg-gray-800'}`}>
               <div>
                 <p className="text-xs font-semibold text-white/60 uppercase tracking-widest mb-1">
-                  {selected.tipe === 'penting' ? '⚠ Penting' : 'ℹ Informasi'}
+                  {selected.tipe === 'penting' ? 'Penting' : 'Informasi'}
                 </p>
                 <h3 className="text-white font-bold leading-snug">{selected.judul}</h3>
               </div>
@@ -73,15 +70,14 @@ function PengumumanTicker({ items }) {
               </button>
             </div>
             <div className="px-6 py-5">
-              {selected.isi_html ? (
-                <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: selected.isi_html }} />
-              ) : (
-                <p className="text-gray-700 text-sm leading-relaxed">{selected.isi}</p>
-              )}
+              {selected.isi_html
+                ? <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: selected.isi_html }} />
+                : <p className="text-gray-700 text-sm leading-relaxed">{selected.isi}</p>
+              }
               <div className="flex items-center justify-between mt-5 pt-4 border-t border-gray-100">
                 <p className="text-xs text-gray-400">{formatTanggal(selected.created_at)}</p>
                 <Link to="/pengumuman" className="text-xs text-red-600 font-semibold hover:underline">
-                  Lihat semua pengumuman →
+                  Lihat semua pengumuman
                 </Link>
               </div>
             </div>
@@ -93,18 +89,16 @@ function PengumumanTicker({ items }) {
 }
 
 /* ─── Section Header ─────────────────────────────────────────────────────── */
-function SectionHeader({ emoji, tag, title, to }) {
+function SectionHeader({ tag, title, to }) {
   return (
     <div className="flex items-end justify-between mb-8">
       <div>
-        <p className="text-xs font-semibold text-red-600 uppercase tracking-widest mb-1">
-          {emoji} • {tag}
-        </p>
+        <p className="text-xs font-semibold text-red-600 uppercase tracking-widest mb-1">{tag}</p>
         <h2 className="text-2xl md:text-3xl font-black text-gray-900">{title}</h2>
       </div>
       {to && (
         <Link to={to} className="text-sm text-red-600 font-semibold hover:underline whitespace-nowrap">
-          Lihat semua →
+          Lihat semua
         </Link>
       )}
     </div>
@@ -118,7 +112,6 @@ export default function LandingPage() {
   const { beritaPublished }       = useBerita()
   const { published: pengumuman } = usePengumuman()
   const { published: kegiatan }   = useKegiatan()
-  const { published: pengurus }   = usePengurus()
   const { published: galeri }     = useGaleri()
   const { caborAktif }            = useCabor()
   const { atlet }                 = useAtlet()
@@ -128,8 +121,6 @@ export default function LandingPage() {
   return (
     <div className="bg-white">
       <style>{TICKER_CSS}</style>
-
-      {/* Ticker */}
       <PengumumanTicker items={pengumuman} />
 
       {/* ── HERO ── */}
@@ -147,7 +138,7 @@ export default function LandingPage() {
             <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-5">
               Membina Atlet,<br />
               Mencetak Juara,<br />
-              <span className="text-red-500">Harumkan Banyumas!</span>
+              <span className="text-red-500">Harumkan Banyumas.</span>
             </h1>
             <p className="text-gray-300 leading-relaxed mb-8 max-w-md text-sm">
               KONI Kabupaten Banyumas hadir untuk membina dan mengembangkan olahraga prestasi menuju kejayaan di tingkat regional dan nasional.
@@ -155,7 +146,7 @@ export default function LandingPage() {
             <div className="flex flex-wrap gap-3">
               <Link to="/kegiatan"
                 className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-colors">
-                Lihat Event →
+                Lihat Event
               </Link>
               <Link to="/berita"
                 className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20 transition-colors">
@@ -164,9 +155,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Stats */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur">
-            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">🏆 Statistik KONI Banyumas</p>
+            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">
+              Statistik KONI Banyumas
+            </p>
             <div className="grid grid-cols-2 gap-4">
               {[
                 { value: atlet.length,      label: 'Total Atlet',     sub: 'terdaftar'  },
@@ -191,7 +183,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <p className="text-xs font-semibold text-red-600 uppercase tracking-widest mb-2">
-                🏅 • Mengenal KONI lebih jauh!
+                Mengenal KONI lebih jauh
               </p>
               <h2 className="text-3xl font-black text-gray-900 mb-4">
                 Tentang KONI<br />Kabupaten Banyumas
@@ -214,15 +206,15 @@ export default function LandingPage() {
               </div>
               <Link to="/pengurus"
                 className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-xl transition-colors">
-                Lihat Pengurus →
+                Lihat Struktur Pengurus
               </Link>
             </div>
 
             <div className="grid grid-cols-3 gap-4 text-center">
               {[
                 { value: caborAktif.length, label: 'Cabang Olahraga' },
-                { value: atlet.length,      label: 'Atlet Terdaftar' },
-                { value: totalMedali,       label: 'Total Medali'    },
+                { value: atlet.length,      label: 'Atlet Terdaftar'  },
+                { value: totalMedali,       label: 'Total Medali'     },
               ].map(s => (
                 <div key={s.label} className="py-6 border border-gray-100 rounded-2xl hover:border-red-200 hover:shadow-sm transition-all">
                   <p className="text-4xl font-black text-red-600">{s.value}</p>
@@ -230,7 +222,7 @@ export default function LandingPage() {
                 </div>
               ))}
               <div className="col-span-3 bg-gray-50 rounded-2xl p-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Cabor Unggulan</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Beberapa Cabor Unggulan</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {caborAktif.slice(0, 10).map(c => (
                     <span key={c.id} className="text-xs bg-white border border-gray-200 text-gray-700 px-2.5 py-1 rounded-full font-medium">
@@ -253,13 +245,12 @@ export default function LandingPage() {
       {kegiatan.length > 0 && (
         <section className="py-20 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="🎉" tag="Event Olahraga" title="Event – Event KONI" to="/kegiatan" />
+            <SectionHeader tag="Event Olahraga" title="Event KONI" to="/kegiatan" />
             <div className="grid md:grid-cols-3 gap-5">
               {kegiatan.slice(0, 3).map(k => (
-                <div key={k.id}
-                  onClick={() => navigate('/kegiatan')}
+                <div key={k.id} onClick={() => navigate('/kegiatan')}
                   className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow group cursor-pointer">
-                  <div className="h-44 bg-gradient-to-br from-red-600 to-red-800 relative flex items-center justify-center">
+                  <div className="h-44 bg-gradient-to-br from-red-600 to-red-900 relative flex items-center justify-center">
                     <svg className="w-16 h-16 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
@@ -288,14 +279,14 @@ export default function LandingPage() {
       {beritaPublished.length > 0 && (
         <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="📰" tag="Info Terbaru" title="Berita Terkini" to="/berita" />
+            <SectionHeader tag="Informasi Terbaru" title="Berita Terkini" to="/berita" />
             <div className="space-y-3">
               {beritaPublished.slice(0, 4).map((b, i) => (
                 <Link key={b.id} to={`/berita/${b.id}`}
                   className={`flex gap-4 items-start p-4 rounded-xl border hover:border-red-200 hover:shadow-sm transition-all group ${i === 0 ? 'border-red-100 bg-red-50' : 'border-gray-100 bg-white'}`}>
-                  <div className={`w-16 h-16 rounded-xl flex-shrink-0 flex items-center justify-center ${i === 0 ? 'bg-red-600' : 'bg-gray-200'}`}>
+                  <div className={`w-16 h-16 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden ${i === 0 ? 'bg-red-600' : 'bg-gray-200'}`}>
                     {b.foto_url ? (
-                      <img src={b.foto_url} alt={b.judul} className="w-full h-full object-cover rounded-xl" />
+                      <img src={b.foto_url} alt={b.judul} className="w-full h-full object-cover" />
                     ) : (
                       <svg className={`w-6 h-6 ${i === 0 ? 'text-white' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
@@ -328,11 +319,10 @@ export default function LandingPage() {
       {galeri.length > 0 && (
         <section className="py-20 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="🖼️" tag="Koleksi Terbaru" title="Galeri KONI" to="/galeri" />
+            <SectionHeader tag="Dokumentasi" title="Galeri KONI" to="/galeri" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {galeri.slice(0, 8).map((g, i) => (
-                <div key={g.id}
-                  onClick={() => navigate('/galeri')}
+                <div key={g.id} onClick={() => navigate('/galeri')}
                   className={`group relative overflow-hidden rounded-2xl bg-gray-200 cursor-pointer ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}
                   style={{ aspectRatio: i === 0 ? '1/1' : '4/3' }}>
                   {g.url_foto ? (
@@ -353,37 +343,6 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── PENGURUS ── */}
-      {pengurus.length > 0 && (
-        <section className="py-20 bg-white">
-          <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="👥" tag="Kepengurusan" title="Pengurus KONI Banyumas" to="/pengurus" />
-            <p className="text-gray-500 text-sm -mt-4 mb-8">Periode 2022 – 2026</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {pengurus.slice(0, 8).map((p, i) => (
-                <div key={p.id} className="text-center group">
-                  <div className={`w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center border-4 transition-colors ${i === 0 ? 'bg-red-600 border-red-100 group-hover:border-red-300' : 'bg-gray-800 border-gray-100 group-hover:border-gray-300'}`}>
-                    <span className="text-white font-black text-xl">
-                      {p.nama.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()}
-                    </span>
-                  </div>
-                  <p className="font-bold text-gray-900 text-sm leading-snug">{p.nama}</p>
-                  <p className={`text-xs font-semibold mt-1 ${i === 0 ? 'text-red-600' : 'text-gray-500'}`}>{p.jabatan}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{p.periode}</p>
-                </div>
-              ))}
-            </div>
-            {pengurus.length > 8 && (
-              <div className="text-center mt-8">
-                <Link to="/pengurus" className="inline-flex items-center gap-2 px-6 py-2.5 border border-gray-200 hover:border-red-300 text-gray-600 hover:text-red-600 text-sm font-semibold rounded-xl transition-colors">
-                  Lihat semua pengurus →
-                </Link>
-              </div>
-            )}
           </div>
         </section>
       )}
