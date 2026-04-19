@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { useBerita }     from '../context/BeritaContext'
 import { usePengumuman } from '../context/PengumumanContext'
 import { useKegiatan }   from '../context/KegiatanContext'
@@ -10,86 +10,90 @@ import { useAtlet }      from '../context/AtletContext'
 import { usePrestasi }   from '../context/PrestasiContext'
 import { formatTanggal } from '../utils/helpers'
 
-/* ─── CSS animasi ticker ─────────────────────────────────────────────────── */
+/* ─── Ticker CSS ─────────────────────────────────────────────────────────── */
 const TICKER_CSS = `
-  @keyframes ticker-move {
-    0%   { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
+  @keyframes ticker-move { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
   .ticker-track { animation: ticker-move 35s linear infinite; }
   .ticker-wrap:hover .ticker-track { animation-play-state: paused; }
 `
 
 /* ─── Ticker Pengumuman ──────────────────────────────────────────────────── */
-function PengumumanTicker({ items, onClickItem }) {
+function PengumumanTicker({ items }) {
+  const navigate = useNavigate()
+  const [selected, setSelected] = useState(null)
   if (!items.length) return null
+
   return (
-    <div className="bg-red-600 text-white flex items-stretch overflow-hidden" style={{ minHeight: 38 }}>
-      <div className="flex-shrink-0 bg-red-800 px-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest z-10 whitespace-nowrap">
-        <span className="w-1.5 h-1.5 bg-yellow-300 rounded-full animate-pulse" />
-        Pengumuman
-      </div>
-      <div className="flex-1 overflow-hidden ticker-wrap cursor-pointer">
-        <div className="ticker-track flex items-center h-full whitespace-nowrap">
-          {[0, 1].map(n => (
-            <span key={n} className="inline-flex items-center gap-8 px-8 py-2 text-sm">
-              {items.map((p, i) => (
-                <span key={`${n}-${p.id}`} className="inline-flex items-center gap-6">
-                  <button onClick={() => onClickItem(p)}
-                    className="hover:text-yellow-200 hover:underline transition-colors">
-                    📢 {p.judul}
-                  </button>
-                  {i < items.length - 1 && <span className="text-red-400 text-lg leading-none">·</span>}
-                </span>
-              ))}
-            </span>
-          ))}
+    <>
+      <div className="bg-red-600 text-white flex items-stretch overflow-hidden" style={{ minHeight: 38 }}>
+        <div className="flex-shrink-0 bg-red-800 px-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest z-10 whitespace-nowrap">
+          <span className="w-1.5 h-1.5 bg-yellow-300 rounded-full animate-pulse" />
+          Pengumuman
         </div>
-      </div>
-    </div>
-  )
-}
-
-/* ─── Modal Pengumuman ───────────────────────────────────────────────────── */
-function ModalPengumuman({ item, onClose }) {
-  useEffect(() => {
-    if (!item) return
-    const h = e => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', h)
-    return () => window.removeEventListener('keydown', h)
-  }, [item, onClose])
-  if (!item) return null
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className={`px-6 py-4 flex items-start justify-between gap-4 ${item.tipe === 'penting' ? 'bg-red-600' : 'bg-gray-800'}`}>
-          <div>
-            <p className="text-xs font-semibold text-white/60 uppercase tracking-widest mb-1">
-              {item.tipe === 'penting' ? '⚠ Pengumuman Penting' : 'ℹ Informasi'}
-            </p>
-            <h3 className="text-white font-bold leading-snug">{item.judul}</h3>
+        <div className="flex-1 overflow-hidden ticker-wrap cursor-pointer">
+          <div className="ticker-track flex items-center h-full whitespace-nowrap">
+            {[0, 1].map(n => (
+              <span key={n} className="inline-flex items-center gap-8 px-8 py-2 text-sm">
+                {items.map((p, i) => (
+                  <span key={`${n}-${p.id}`} className="inline-flex items-center gap-6">
+                    <button onClick={() => setSelected(p)}
+                      className="hover:text-yellow-200 hover:underline transition-colors">
+                      📢 {p.judul}
+                    </button>
+                    {i < items.length - 1 && <span className="text-red-400 text-lg leading-none">·</span>}
+                  </span>
+                ))}
+              </span>
+            ))}
           </div>
-          <button onClick={onClose} className="text-white/60 hover:text-white mt-0.5 flex-shrink-0">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </div>
-        <div className="px-6 py-5">
-          <p className="text-gray-700 text-sm leading-relaxed">{item.isi}</p>
-          <p className="text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100">
-            {formatTanggal(item.created_at)}
-          </p>
-        </div>
+        <button
+          onClick={() => navigate('/pengumuman')}
+          className="flex-shrink-0 bg-red-800 hover:bg-red-900 px-4 text-xs font-semibold whitespace-nowrap transition-colors">
+          Lihat semua →
+        </button>
       </div>
-    </div>
+
+      {/* Modal pengumuman */}
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelected(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className={`px-6 py-4 flex items-start justify-between gap-4 ${selected.tipe === 'penting' ? 'bg-red-600' : 'bg-gray-800'}`}>
+              <div>
+                <p className="text-xs font-semibold text-white/60 uppercase tracking-widest mb-1">
+                  {selected.tipe === 'penting' ? '⚠ Penting' : 'ℹ Informasi'}
+                </p>
+                <h3 className="text-white font-bold leading-snug">{selected.judul}</h3>
+              </div>
+              <button onClick={() => setSelected(null)} className="text-white/60 hover:text-white mt-0.5 flex-shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-5">
+              {selected.isi_html ? (
+                <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: selected.isi_html }} />
+              ) : (
+                <p className="text-gray-700 text-sm leading-relaxed">{selected.isi}</p>
+              )}
+              <div className="flex items-center justify-between mt-5 pt-4 border-t border-gray-100">
+                <p className="text-xs text-gray-400">{formatTanggal(selected.created_at)}</p>
+                <Link to="/pengumuman" className="text-xs text-red-600 font-semibold hover:underline">
+                  Lihat semua pengumuman →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
-/* ─── Section Header ────────────────────────────────────────────────────── */
-function SectionHeader({ emoji, tag, title, to, hrefLabel = 'Lihat semua →' }) {
+/* ─── Section Header ─────────────────────────────────────────────────────── */
+function SectionHeader({ emoji, tag, title, to }) {
   return (
     <div className="flex items-end justify-between mb-8">
       <div>
@@ -100,16 +104,16 @@ function SectionHeader({ emoji, tag, title, to, hrefLabel = 'Lihat semua →' })
       </div>
       {to && (
         <Link to={to} className="text-sm text-red-600 font-semibold hover:underline whitespace-nowrap">
-          {hrefLabel}
+          Lihat semua →
         </Link>
       )}
     </div>
   )
 }
 
-/* ─── Main Page ──────────────────────────────────────────────────────────── */
+/* ─── Main ───────────────────────────────────────────────────────────────── */
 export default function LandingPage() {
-  const [selectedPengumuman, setSelectedPengumuman] = useState(null)
+  const navigate = useNavigate()
 
   const { beritaPublished }       = useBerita()
   const { published: pengumuman } = usePengumuman()
@@ -119,19 +123,17 @@ export default function LandingPage() {
   const { caborAktif }            = useCabor()
   const { atlet }                 = useAtlet()
   const { prestasi, statMedali }  = usePrestasi()
-
   const totalMedali = statMedali.emas + statMedali.perak + statMedali.perunggu
 
   return (
-    <div className="bg-white font-sans">
+    <div className="bg-white">
       <style>{TICKER_CSS}</style>
 
-      <PengumumanTicker items={pengumuman} onClickItem={setSelectedPengumuman} />
-      <ModalPengumuman item={selectedPengumuman} onClose={() => setSelectedPengumuman(null)} />
+      {/* Ticker */}
+      <PengumumanTicker items={pengumuman} />
 
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section id="beranda" className="relative bg-gray-900 overflow-hidden">
-        {/* Background gradient */}
+      {/* ── HERO ── */}
+      <section className="relative bg-gray-900 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-red-950" />
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, #ef4444 0%, transparent 60%)' }} />
@@ -147,30 +149,30 @@ export default function LandingPage() {
               Mencetak Juara,<br />
               <span className="text-red-500">Harumkan Banyumas!</span>
             </h1>
-            <p className="text-gray-300 leading-relaxed mb-8 max-w-md">
+            <p className="text-gray-300 leading-relaxed mb-8 max-w-md text-sm">
               KONI Kabupaten Banyumas hadir untuk membina dan mengembangkan olahraga prestasi menuju kejayaan di tingkat regional dan nasional.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="#kegiatan"
+              <Link to="/kegiatan"
                 className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-colors">
                 Lihat Event →
-              </a>
-              <a href="#tentang"
+              </Link>
+              <Link to="/berita"
                 className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20 transition-colors">
-                Apa itu KONI?
-              </a>
+                Berita Terkini
+              </Link>
             </div>
           </div>
 
-          {/* Stats card */}
+          {/* Stats */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur">
             <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">🏆 Statistik KONI Banyumas</p>
             <div className="grid grid-cols-2 gap-4">
               {[
-                { value: atlet.length,        label: 'Total Atlet',       sub: 'terdaftar' },
-                { value: caborAktif.length,   label: 'Cabang Olahraga',   sub: 'aktif' },
-                { value: totalMedali,         label: 'Total Medali',      sub: 'diraih' },
-                { value: statMedali.emas,     label: 'Medali Emas',       sub: 'bergengsi' },
+                { value: atlet.length,      label: 'Total Atlet',     sub: 'terdaftar'  },
+                { value: caborAktif.length, label: 'Cabang Olahraga', sub: 'aktif'      },
+                { value: totalMedali,       label: 'Total Medali',    sub: 'diraih'     },
+                { value: statMedali.emas,   label: 'Medali Emas',     sub: 'bergengsi'  },
               ].map(s => (
                 <div key={s.label} className="text-center py-4 border border-white/10 rounded-xl">
                   <p className="text-3xl font-black text-white">{s.value}</p>
@@ -183,24 +185,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── TENTANG ──────────────────────────────────────────────────────── */}
-      <section id="tentang" className="py-20 bg-white">
+      {/* ── TENTANG ── */}
+      <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Kiri */}
             <div>
               <p className="text-xs font-semibold text-red-600 uppercase tracking-widest mb-2">
                 🏅 • Mengenal KONI lebih jauh!
               </p>
-              <h2 className="text-3xl font-black text-gray-900 mb-4">Tentang KONI<br />Kabupaten Banyumas</h2>
+              <h2 className="text-3xl font-black text-gray-900 mb-4">
+                Tentang KONI<br />Kabupaten Banyumas
+              </h2>
               <p className="text-gray-600 leading-relaxed mb-4 text-sm">
                 Komite Olahraga Nasional Indonesia (KONI) Kabupaten Banyumas merupakan induk organisasi pembinaan olahraga prestasi di tingkat kabupaten yang bertugas melakukan pengelolaan dan pengembangan olahraga daerah.
               </p>
               <p className="text-gray-600 leading-relaxed text-sm">
                 Bersama {caborAktif.length} cabang olahraga aktif, KONI Banyumas berkomitmen mencetak atlet-atlet berprestasi yang siap bersaing di Porprov, PON, hingga ajang internasional.
               </p>
-
-              {/* Visi misi mini */}
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <div className="bg-red-50 border border-red-100 rounded-xl p-4">
                   <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-2">Visi</p>
@@ -211,14 +212,12 @@ export default function LandingPage() {
                   <p className="text-xs text-gray-700 leading-relaxed">Meningkatkan kualitas pembinaan atlet secara terpadu dan berkesinambungan.</p>
                 </div>
               </div>
-
-              <a href="#cabor"
+              <Link to="/pengurus"
                 className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-xl transition-colors">
-                Pelajari Lebih Lanjut →
-              </a>
+                Lihat Pengurus →
+              </Link>
             </div>
 
-            {/* Kanan — stat besar mirip koni.or.id */}
             <div className="grid grid-cols-3 gap-4 text-center">
               {[
                 { value: caborAktif.length, label: 'Cabang Olahraga' },
@@ -230,9 +229,8 @@ export default function LandingPage() {
                   <p className="text-xs text-gray-500 font-medium mt-1 leading-tight">{s.label}</p>
                 </div>
               ))}
-              {/* Cabor grid mini */}
               <div className="col-span-3 bg-gray-50 rounded-2xl p-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Beberapa Cabor Unggulan</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Cabor Unggulan</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {caborAktif.slice(0, 10).map(c => (
                     <span key={c.id} className="text-xs bg-white border border-gray-200 text-gray-700 px-2.5 py-1 rounded-full font-medium">
@@ -251,16 +249,17 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── EVENT / KEGIATAN ─────────────────────────────────────────────── */}
+      {/* ── EVENT ── */}
       {kegiatan.length > 0 && (
-        <section id="kegiatan" className="py-20 bg-gray-50">
+        <section className="py-20 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="🎉" tag="Event Olahraga" title="Event – Event KONI" to="/kegiatan" hrefLabel="Lihat semua →" />
+            <SectionHeader emoji="🎉" tag="Event Olahraga" title="Event – Event KONI" to="/kegiatan" />
             <div className="grid md:grid-cols-3 gap-5">
               {kegiatan.slice(0, 3).map(k => (
-                <div key={k.id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow group">
-                  {/* Thumbnail */}
-                  <div className="h-44 bg-gradient-to-br from-red-600 to-red-800 relative flex items-center justify-center overflow-hidden">
+                <div key={k.id}
+                  onClick={() => navigate('/kegiatan')}
+                  className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow group cursor-pointer">
+                  <div className="h-44 bg-gradient-to-br from-red-600 to-red-800 relative flex items-center justify-center">
                     <svg className="w-16 h-16 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
@@ -269,23 +268,13 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="p-5">
-                    <h3 className="font-bold text-gray-900 text-sm mb-2 leading-snug group-hover:text-red-600 transition-colors">
-                      {k.nama}
-                    </h3>
-                    <p className="text-xs text-gray-500 mb-3">
-                      {formatTanggal(k.tanggal_mulai)}
-                      {k.tanggal_selesai && k.tanggal_selesai !== k.tanggal_mulai && ` – ${formatTanggal(k.tanggal_selesai)}`}
-                    </p>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <h3 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-red-600 transition-colors leading-snug">{k.nama}</h3>
+                    <p className="text-xs text-gray-500 mb-1">{formatTanggal(k.tanggal_mulai)}</p>
+                    <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
                       <svg className="w-3.5 h-3.5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       </svg>
                       {k.lokasi}
-                    </div>
-                    <div className="mt-4 pt-3 border-t border-gray-100">
-                      <button className="text-xs text-red-600 font-semibold hover:underline">
-                        Lihat Event →
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -295,20 +284,23 @@ export default function LandingPage() {
         </section>
       )}
 
-      {/* ── BERITA ───────────────────────────────────────────────────────── */}
+      {/* ── BERITA ── */}
       {beritaPublished.length > 0 && (
-        <section id="berita" className="py-20 bg-white">
+        <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="📰" tag="Info Terbaru" title="Berita Terkini" to="/berita" hrefLabel="Lihat semua →" />
+            <SectionHeader emoji="📰" tag="Info Terbaru" title="Berita Terkini" to="/berita" />
             <div className="space-y-3">
-              {beritaPublished.slice(0, 5).map((b, i) => (
-                <div key={b.id}
-                  className={`flex gap-4 items-start p-4 rounded-xl border hover:border-red-200 hover:shadow-sm transition-all cursor-pointer group ${i === 0 ? 'border-red-100 bg-red-50' : 'border-gray-100 bg-white'}`}>
-                  {/* Thumbnail kecil */}
+              {beritaPublished.slice(0, 4).map((b, i) => (
+                <Link key={b.id} to={`/berita/${b.id}`}
+                  className={`flex gap-4 items-start p-4 rounded-xl border hover:border-red-200 hover:shadow-sm transition-all group ${i === 0 ? 'border-red-100 bg-red-50' : 'border-gray-100 bg-white'}`}>
                   <div className={`w-16 h-16 rounded-xl flex-shrink-0 flex items-center justify-center ${i === 0 ? 'bg-red-600' : 'bg-gray-200'}`}>
-                    <svg className={`w-6 h-6 ${i === 0 ? 'text-white' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                    </svg>
+                    {b.foto_url ? (
+                      <img src={b.foto_url} alt={b.judul} className="w-full h-full object-cover rounded-xl" />
+                    ) : (
+                      <svg className={`w-6 h-6 ${i === 0 ? 'text-white' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                      </svg>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -322,22 +314,26 @@ export default function LandingPage() {
                     </h3>
                     <p className="text-xs text-gray-500 mt-1 line-clamp-1">{b.ringkasan}</p>
                   </div>
-                </div>
+                  <svg className="w-4 h-4 text-gray-300 group-hover:text-red-400 transition-colors flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* ── GALERI ───────────────────────────────────────────────────────── */}
+      {/* ── GALERI ── */}
       {galeri.length > 0 && (
-        <section id="galeri" className="py-20 bg-gray-50">
+        <section className="py-20 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="🖼️" tag="Koleksi Terbaru" title="Galeri KONI" to="/galeri" hrefLabel="Lihat semua →" />
+            <SectionHeader emoji="🖼️" tag="Koleksi Terbaru" title="Galeri KONI" to="/galeri" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {galeri.slice(0, 8).map((g, i) => (
                 <div key={g.id}
-                  className={`group relative overflow-hidden rounded-2xl bg-gray-200 ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}
+                  onClick={() => navigate('/galeri')}
+                  className={`group relative overflow-hidden rounded-2xl bg-gray-200 cursor-pointer ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}
                   style={{ aspectRatio: i === 0 ? '1/1' : '4/3' }}>
                   {g.url_foto ? (
                     <img src={g.url_foto} alt={g.judul}
@@ -345,7 +341,7 @@ export default function LandingPage() {
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                       <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
                   )}
@@ -361,14 +357,14 @@ export default function LandingPage() {
         </section>
       )}
 
-      {/* ── PENGURUS ─────────────────────────────────────────────────────── */}
+      {/* ── PENGURUS ── */}
       {pengurus.length > 0 && (
-        <section id="pengurus" className="py-20 bg-white">
+        <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader emoji="👥" tag="Kepengurusan" title="Pengurus KONI Banyumas" />
+            <SectionHeader emoji="👥" tag="Kepengurusan" title="Pengurus KONI Banyumas" to="/pengurus" />
             <p className="text-gray-500 text-sm -mt-4 mb-8">Periode 2022 – 2026</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {pengurus.map((p, i) => (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {pengurus.slice(0, 8).map((p, i) => (
                 <div key={p.id} className="text-center group">
                   <div className={`w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center border-4 transition-colors ${i === 0 ? 'bg-red-600 border-red-100 group-hover:border-red-300' : 'bg-gray-800 border-gray-100 group-hover:border-gray-300'}`}>
                     <span className="text-white font-black text-xl">
@@ -381,10 +377,16 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+            {pengurus.length > 8 && (
+              <div className="text-center mt-8">
+                <Link to="/pengurus" className="inline-flex items-center gap-2 px-6 py-2.5 border border-gray-200 hover:border-red-300 text-gray-600 hover:text-red-600 text-sm font-semibold rounded-xl transition-colors">
+                  Lihat semua pengurus →
+                </Link>
+              </div>
+            )}
           </div>
         </section>
       )}
-
     </div>
   )
 }
