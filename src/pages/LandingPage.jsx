@@ -247,15 +247,20 @@ export default function LandingPage() {
           <div className="max-w-6xl mx-auto px-4">
             <SectionHeader tag="Event Olahraga" title="Event KONI" to="/kegiatan" />
             <div className="grid md:grid-cols-3 gap-5">
-              {kegiatan.slice(0, 3).map(k => (
+              {kegiatan.slice(0, 3).map(k => {
+                const today = new Date().toISOString().split('T')[0]
+                const isUpcoming = k.tanggal_mulai >= today || (k.tanggal_selesai && k.tanggal_selesai >= today)
+                return (
                 <div key={k.id} onClick={() => navigate('/kegiatan')}
                   className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow group cursor-pointer">
-                  <div className="h-44 bg-gradient-to-br from-red-600 to-red-900 relative flex items-center justify-center">
+                  <div className={`h-44 relative flex items-center justify-center bg-gradient-to-br ${isUpcoming ? 'from-red-600 to-red-900' : 'from-gray-500 to-gray-700'}`}>
                     <svg className="w-16 h-16 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <div className="absolute top-3 left-3">
-                      <span className="text-xs font-bold bg-emerald-500 text-white px-2 py-1 rounded-lg">Upcoming</span>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-lg ${isUpcoming ? 'bg-emerald-500 text-white' : 'bg-white/20 text-white'}`}>
+                        {isUpcoming ? 'Upcoming' : 'Selesai'}
+                      </span>
                     </div>
                   </div>
                   <div className="p-5">
@@ -269,7 +274,8 @@ export default function LandingPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </section>
