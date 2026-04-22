@@ -1,31 +1,36 @@
 import { createContext, useContext, useState } from 'react'
+import api from '../api/axios'
 
 const AuthContext = createContext(null)
-
-// Kredensial hardcoded untuk UTS
-const VALID_USER = { username: 'admin', password: 'koni2024', nama: 'Admin KONI' }
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const stored = sessionStorage.getItem('koni_auth')
+      const stored = localStorage.getItem('koni_user')
       return stored ? JSON.parse(stored) : null
     } catch { return null }
   })
 
-  function login(username, password) {
-    if (username === VALID_USER.username && password === VALID_USER.password) {
-      const userData = { username, nama: VALID_USER.nama }
+  async function login(username, password) {
+    try {
+      const res = await api.post('/auth/login', { username, password })
+      const { token, user: userData } = res.data
+
+      localStorage.setItem('koni_token', token)
+      localStorage.setItem('koni_user', JSON.stringify(userData))
       setUser(userData)
-      sessionStorage.setItem('koni_auth', JSON.stringify(userData))
-      return { success: true }
+
+      return { success: true, role: userData.role }
+    } catch (err) {
+      const message = err.response?.data?.message || 'Login gagal, coba lagi.'
+      return { success: false, message }
     }
-    return { success: false, message: 'Username atau password salah.' }
   }
 
   function logout() {
+    localStorage.removeItem('koni_token')
+    localStorage.removeItem('koni_user')
     setUser(null)
-    sessionStorage.removeItem('koni_auth')
   }
 
   return (
