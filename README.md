@@ -360,12 +360,12 @@ Jl. ... · Purwokerto · Jawa Tengah · Indonesia
 
 ## 📄 Lisensi
 
-Proyek ini dibuat untuk keperluan akademik. Hak cipta © 2024 Tim Pengembang.
+Proyek ini dibuat untuk keperluan akademik. Hak cipta © 2026 Tim Pengembang.
 
 ---
 
 <div align="center">
 
-Dibuat dengan ❤️ oleh Kelompok Kami · Pemrograman Web Lanjut · UMP 2024
+Dibuat dengan ❤️ oleh Kelompok Kami · Pemrograman Web Lanjut · UMP 2026
 
 </div>
