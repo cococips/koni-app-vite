@@ -331,12 +331,12 @@ Badge type="kategori" → koordinator / fisik / teknik / taktik
 
 | Nama | NIM | Bagian |
 |------|-----|--------|
-| [Nama 1] | [NIM] | Setup, Struktur Folder, Styling |
-| [Nama 2] | [NIM] | Context API, State Management, Data |
-| [Nama 3] | [NIM] | Routing, Admin Panel, CRUD |
-| [Nama 4] | [NIM] | Landing Page, Halaman Publik, Auth |
+| [Deska Febi Rosiana] | [2403040030] | Setup, Struktur Folder, Styling |
+| [Iqbal Dwi Ganjar Saefullah] | [2403040029] | Context API, State Management, Data |
+| [Erlangga Jaya Diputra] | [2403040019] | Routing, Admin Panel, CRUD |
+| [Andika Candra Wijaya] | [2403040022] | Landing Page, Halaman Publik, Auth |
 
-**Dosen Pengampu:** [Nama Dosen]
+
 **Mata Kuliah:** Pemrograman Web Lanjut
 **Universitas:** Universitas Muhammadiyah Purwokerto
 **Tahun:** 2024
