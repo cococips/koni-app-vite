@@ -17,6 +17,7 @@ app.use('/api/admin',   require('./routes/admin'))
 app.use('/api/pelatih', require('./routes/pelatih'))
 app.use('/api/atlet',   require('./routes/atlet'))
 app.use('/api/wasit',   require('./routes/wasit'))
+app.use('/api/public',  require('./routes/public')) // Tambahkan route public untuk stats landing page
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }))
 

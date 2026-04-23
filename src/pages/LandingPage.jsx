@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import api from '../api/axios'
+import { publicApi } from '../api/axios'
 // Konten publik tetap dari Context (localStorage dikelola admin)
 import { useBerita }     from '../context/BeritaContext'
 import { usePengumuman } from '../context/PengumumanContext'
@@ -108,29 +108,24 @@ export default function LandingPage() {
   })
   const [loadingStats, setLoadingStats] = useState(true)
 
-  useEffect(() => {
+useEffect(() => {
     async function loadStats() {
       try {
-        const [rAtlet, rCabor, rPrestasi] = await Promise.all([
-          api.get('/admin/atlet'),
-          api.get('/admin/cabor'),
-          api.get('/admin/prestasi').catch(() => ({ data: { data: [] } })),
-        ])
+        // Ambil data dari endpoint publik (tanpa token)
+        const response = await publicApi.get('/public/stats')
+        const data = response.data.data
 
-        const atlet   = rAtlet.data.data   || []
-        const cabor   = rCabor.data.data   || []
-        const prestasi = rPrestasi.data.data || []
-        const caborAktif = cabor.filter(c => c.status === 'aktif')
-
+        // Masukkan data dari backend ke dalam state
         setStats({
-          totalAtlet:  atlet.length,
-          totalCabor:  caborAktif.length,
-          totalMedali: prestasi.length,
-          medaliEmas:  prestasi.filter(p => p.medali === 'emas').length,
-          caborAktif,
+          totalAtlet:  data.totalAtlet || 0,
+          totalCabor:  data.totalCabor || 0,
+          totalMedali: data.totalPrestasi || 0,
+          medaliEmas:  data.medaliEmas || 0,
+          caborAktif:  data.caborAktif || [],
         })
-      } catch {
-        // Kalau backend mati, tampilkan 0 — tidak crash
+      } catch (error) {
+        console.error("Gagal mengambil data statistik publik:", error)
+        // Kalau backend mati atau gagal, biarkan 0 — tidak crash
       }
       setLoadingStats(false)
     }

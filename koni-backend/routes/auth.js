@@ -36,11 +36,21 @@ router.post('/login', async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Username tidak ditemukan.' });
     }
 
-    // Cek kecocokan password yang di-hash
-    const isMatch = await bcrypt.compare(password, user.password_hash);
+    // --- PENGECEKAN PASSWORD (DIUBAH) ---
+    // Kita cek apakah password cocok sebagai teks biasa (untuk data dummy)
+    // ATAU cocok dengan format hash bcrypt (untuk data asli)
+    let isMatch = false;
+    
+    if (password === user.password_hash) {
+      isMatch = true; // Cocok dengan teks biasa di dummy_data.sql
+    } else {
+      isMatch = await bcrypt.compare(password, user.password_hash); // Cek dengan bcrypt
+    }
+
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Password salah.' });
     }
+    // ------------------------------------
 
     // Buat token JWT jika sukses
     const payload = { 
