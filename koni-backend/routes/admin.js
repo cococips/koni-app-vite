@@ -125,4 +125,37 @@ router.post('/create-account', ...guard, async (req, res, next) => {
   } catch(err){next(err)}
 })
 
+
+router.get('/prestasi', ...guard, async (req, res, next) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT pr.*, a.nama AS atlet_nama, c.nama AS cabor_nama
+      FROM prestasi pr
+      LEFT JOIN atlet a ON pr.atlet_id = a.id
+      LEFT JOIN cabor c ON pr.cabor_id = c.id
+      ORDER BY pr.tahun DESC, pr.created_at DESC
+    `)
+    res.json({ success: true, data: rows })
+  } catch (err) { next(err) }
+})
+
+// GET /api/admin/stats — ringkasan untuk dashboard admin
+router.get('/stats', ...guard, async (req, res, next) => {
+  try {
+    const [[{ totalAtlet }]]   = await db.query("SELECT COUNT(*) AS totalAtlet FROM atlet WHERE status='aktif'")
+    const [[{ totalPelatih }]] = await db.query("SELECT COUNT(*) AS totalPelatih FROM pelatih WHERE status='aktif'")
+    const [[{ totalCabor }]]   = await db.query("SELECT COUNT(*) AS totalCabor FROM cabor WHERE status='aktif'")
+    const [[{ totalWasit }]]   = await db.query("SELECT COUNT(*) AS totalWasit FROM wasit WHERE status='aktif'")
+    const [[{ totalPrestasi }]] = await db.query("SELECT COUNT(*) AS totalPrestasi FROM prestasi")
+    const [[{ medaliEmas }]]   = await db.query("SELECT COUNT(*) AS medaliEmas FROM prestasi WHERE medali='emas'")
+    const [[{ medaliPerak }]]  = await db.query("SELECT COUNT(*) AS medaliPerak FROM prestasi WHERE medali='perak'")
+    const [[{ medaliPerunggu }]] = await db.query("SELECT COUNT(*) AS medaliPerunggu FROM prestasi WHERE medali='perunggu'")
+    res.json({
+      success: true,
+      data: { totalAtlet, totalPelatih, totalCabor, totalWasit, totalPrestasi, medaliEmas, medaliPerak, medaliPerunggu }
+    })
+  } catch (err) { next(err) }
+})
+
+
 module.exports = router
