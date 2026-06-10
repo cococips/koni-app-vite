@@ -72,6 +72,7 @@ function TabProgram({ pelatihId }) {
 
   useEffect(() => { loadPrograms() }, [bulan])
 
+  // [PRESENTASI: ORANG 4] Ambil program latihan dari API, difilter per bulan
   async function loadPrograms() {
     try {
       const r = await api.get(`/pelatih/program-latihan?bulan=${bulan}`)
@@ -79,6 +80,7 @@ function TabProgram({ pelatihId }) {
     } catch {}
   }
 
+  // [PRESENTASI: ORANG 4] Tambah atau Edit program latihan baru
   async function handleSimpan() {
     if (!form.judul || !form.tanggal) return alert('Judul dan tanggal wajib.')
     setLoading(true)

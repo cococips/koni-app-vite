@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken')
 
 /**
- * Verifikasi JWT token dari header Authorization.
- * Menyimpan payload ke req.user.
+ * [PRESENTASI: ORANG 2] Middleware 1: Verifikasi token JWT
+ * Mengecek apakah header Authorization berisi Bearer token yang valid.
  */
 function authenticate(req, res, next) {
   const authHeader = req.headers.authorization
@@ -21,8 +21,8 @@ function authenticate(req, res, next) {
 }
 
 /**
- * Guard berdasarkan role.
- * Contoh: authorize('admin', 'pelatih')
+ * [PRESENTASI: ORANG 2] Middleware 2: Guard berdasarkan role
+ * Mengizinkan akses hanya jika role user ada dalam array roles.
  */
 function authorize(...roles) {
   return (req, res, next) => {

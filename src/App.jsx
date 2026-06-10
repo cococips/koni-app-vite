@@ -66,6 +66,7 @@ export default function App() {
                     <AtletProvider>
                       <PelatihProvider>
                         <PrestasiProvider>
+                          {/* [PRESENTASI: ORANG 3] Routing aplikasi dengan React Router v6. Dibagi menjadi 3 kelompok route */}
                           <Routes>
 
                             {/* LOGIN */}

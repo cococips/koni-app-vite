@@ -95,6 +95,7 @@ router.post('/presensi', ...guard, async (req, res, next) => {
     const { program_latihan_id, data } = req.body
     if (!program_latihan_id || !Array.isArray(data))
       return res.status(400).json({ success: false, message: 'Data tidak valid.' })
+    // [PRESENTASI: ORANG 4] Upsert presensi — update kalau sudah ada, insert kalau belum
     for (const item of data) {
       const [existing] = await db.query(
         'SELECT id FROM presensi WHERE program_latihan_id=? AND atlet_id=?',

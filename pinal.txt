@@ -1,0 +1,657 @@
+================================================================
+  NASKAH PRESENTASI VIDEO UAS — VERSI FINAL (dengan Backend)
+  Sistem Informasi KONI Kabupaten Banyumas
+  Pemrograman Web Lanjut
+================================================================
+Durasi total: ±13-16 menit
+Masing-masing orang: ±3-4 menit
+
+================================================================
+ORANG 1 — Setup Project, Struktur Folder, Backend & Database
+================================================================
+Durasi estimasi: 3-4 menit
+
+[INTRO PEMBUKA]
+Halo semuanya, perkenalkan nama saya [nama]. Pada kesempatan ini
+kelompok kami akan mempresentasikan project UAS mata kuliah
+Pemrograman Web Lanjut, yaitu Sistem Informasi KONI Kabupaten
+Banyumas. Sistem ini dibangun secara fullstack menggunakan React
+di sisi frontend dan Node.js dengan Express.js di sisi backend,
+serta MySQL sebagai database. Proyek ini mengacu pada kebutuhan
+nyata dari KONI Kabupaten Banyumas yang sebelumnya masih melakukan
+pencatatan data atlet, pelatih, dan kegiatan secara manual.
+
+[BAGIAN 1 - SETUP DUA PROJECT]
+Project ini dibagi menjadi dua folder terpisah:
+
+Pertama, koni-app untuk frontend, dibuat menggunakan Vite + React:
+  npm create vite@latest koni-app -- --template react
+  npm install react-router-dom axios
+  npm install -D @tailwindcss/vite
+
+Kedua, koni-backend untuk backend, dibuat dengan Node.js biasa:
+  mkdir koni-backend && cd koni-backend
+  npm init -y
+  npm install express mysql2 jsonwebtoken bcrypt multer cors dotenv uuid
+  npm install -D nodemon
+
+Untuk Tailwind CSS versi 4 yang kami gunakan, cukup tambahkan
+plugin di vite.config.js:
+
+  import tailwindcss from '@tailwindcss/vite'
+  export default defineConfig({
+    plugins: [react(), tailwindcss()],
+  })
+
+Dan di index.css cukup satu baris:
+  @import "tailwindcss";
+
+[BAGIAN 2 - STRUKTUR FOLDER]
+Sekarang kita lihat struktur kedua project ini.
+
+koni-backend/
+├── config/db.js          → koneksi MySQL
+├── middleware/
+│   ├── auth.js           → verifikasi JWT & role guard
+│   └── upload.js         → Multer untuk upload file
+├── routes/
+│   ├── auth.js           → endpoint login semua role
+│   ├── admin.js          → CRUD data olahraga
+│   ├── pelatih.js        → dashboard pelatih
+│   ├── atlet.js          → dashboard atlet
+│   └── wasit.js          → dashboard wasit
+├── database/
+│   ├── schema.sql        → struktur tabel MySQL
+│   └── dummy_data.sql    → data awal untuk testing
+├── uploads/              → folder penyimpanan file
+├── server.js             → entry point Express
+└── .env                  → konfigurasi environment
+
+koni-app/src/
+├── api/axios.js          → Axios instance + interceptor JWT
+├── components/common/    → komponen reusable UI
+├── context/              → Context API state management
+├── pages/
+│   ├── admin/            → kelola konten (berita, galeri, dll)
+│   ├── dashboard/        → dashboard pelatih, atlet, wasit
+│   └── public/           → halaman publik terpisah
+└── utils/helpers.js      → format tanggal, filter data
+
+Struktur ini mengikuti prinsip Separation of Concerns —
+setiap bagian punya tanggung jawab yang jelas dan terpisah.
+
+[BAGIAN 3 - BACKEND SERVER & DATABASE]
+Sekarang kita lihat file server.js sebagai entry point backend:
+
+  require('dotenv').config()
+  const express = require('express')
+  const cors    = require('cors')
+
+  const app = express()
+
+  app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+  app.use(express.json())
+  app.use('/uploads', express.static('uploads'))
+
+  app.use('/api/auth',    require('./routes/auth'))
+  app.use('/api/admin',   require('./routes/admin'))
+  app.use('/api/pelatih', require('./routes/pelatih'))
+  app.use('/api/atlet',   require('./routes/atlet'))
+  app.use('/api/wasit',   require('./routes/wasit'))
+
+  app.listen(5000, () => console.log('Server running on port 5000'))
+
+Ada empat hal penting di sini:
+Pertama, CORS dikonfigurasi agar hanya menerima request dari
+frontend di port 5173. Kedua, file upload diakses secara statis
+dari folder /uploads. Ketiga, setiap kelompok route dipisah
+per file agar kode lebih terorganisir. Keempat, server berjalan
+di port 5000 terpisah dari frontend.
+
+Untuk database, kami membuat 8 tabel di MySQL:
+users, cabor, pelatih, atlet, wasit, program_latihan,
+presensi, pertandingan, sertifikat, dan prestasi.
+
+Koneksi database menggunakan connection pool dari mysql2:
+
+  const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: 'koni_banyumas',
+    connectionLimit: 10,
+  })
+
+Connection pool lebih efisien daripada single connection karena
+bisa menangani banyak request secara bersamaan tanpa perlu
+membuka koneksi baru setiap request.
+
+[DEMO]
+[Tunjukkan: VS Code struktur folder → terminal backend running
+→ terminal frontend running → browser landing page]
+
+Tampilan landing page sudah tersinkronisasi dengan database —
+statistik seperti jumlah atlet, cabor, dan prestasi diambil
+langsung dari MySQL melalui API call ke backend.
+
+Untuk selanjutnya akan dijelaskan oleh teman saya mengenai
+sistem autentikasi JWT dan Context API.
+
+
+================================================================
+ORANG 2 — Autentikasi JWT, Middleware, Context API & Axios
+================================================================
+Durasi estimasi: 3-4 menit
+
+[INTRO]
+Terima kasih. Nama saya [nama]. Saya akan menjelaskan bagian
+yang menjadi fondasi keamanan aplikasi ini, yaitu autentikasi
+menggunakan JWT (json WEB TOKEN), middleware proteksi route, serta bagaimana
+frontend berkomunikasi dengan backend melalui Axios.
+
+[BAGIAN 1 - AUTENTIKASI JWT]
+Sistem autentikasi kami menggunakan JSON Web Token atau JWT.
+Ketika user login, backend memvalidasi username dan password,
+lalu menghasilkan token yang berisi informasi role pengguna.
+
+  router.post('/login', async (req, res, next) => {
+    const { username, password } = req.body
+
+    // Cari user di database
+    const [rows] = await db.query(
+      'SELECT * FROM users WHERE username = ?', [username]
+    )
+    const user = rows[0]
+
+    // Verifikasi password dengan bcrypt
+    const match = await bcrypt.compare(password, user.password_hash)
+    if (!match) return res.status(401).json({ message: 'Password salah.' })
+
+    // Generate JWT token
+    const payload = { id: user.id, username: user.username,
+                      role: user.role, ref_id: user.ref_id }
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' })
+
+    res.json({ success: true, token, user: payload })
+  })
+
+Ada beberapa poin penting di sini. Password tidak disimpan
+sebagai plain text — kami menggunakan bcrypt untuk hashing
+yang sangat aman. JWT berisi payload role (admin/pelatih/atlet/
+wasit) sehingga backend tahu siapa yang mengirim request.
+Token berlaku selama 7 hari sebelum expired.
+
+Yang membuat sistem ini kuat adalah satu endpoint login untuk
+semua role — sistem otomatis mendeteksi role dari database dan
+mengarahkan ke dashboard yang tepat.
+
+[BAGIAN 2 - MIDDLEWARE AUTH & ROLE GUARD]
+Agar route backend terlindungi, kami membuat dua middleware:
+
+  // Verifikasi token
+  function authenticate(req, res, next) {
+    const token = req.headers.authorization?.split(' ')[1]
+    if (!token) return res.status(401).json({ message: 'Token tidak ada.' })
+
+    try {
+      req.user = jwt.verify(token, process.env.JWT_SECRET)
+      next()
+    } catch {
+      return res.status(401).json({ message: 'Token tidak valid.' })
+    }
+  }
+
+  // Guard berdasarkan role
+  function authorize(...roles) {
+    return (req, res, next) => {
+      if (!roles.includes(req.user.role)) {
+        return res.status(403).json({ message: 'Akses ditolak.' })
+      }
+      next()
+    }
+  }
+
+  // Penggunaan di route:
+  const guard = [authenticate, authorize('pelatih')]
+  router.get('/me', ...guard, async (req, res) => { ... })
+
+Dengan middleware ini, route /api/pelatih/me hanya bisa
+diakses oleh user dengan role 'pelatih' yang memiliki token
+valid. Kalau admin mencoba akses, langsung ditolak 403.
+
+[BAGIAN 3 - AXIOS INSTANCE DI FRONTEND]
+Di sisi frontend, kami membuat Axios instance terpusat di
+file src/api/axios.js:
+
+  import axios from 'axios'
+
+  const api = axios.create({
+    baseURL: 'http://localhost:5000/api',
+  })
+
+  // Interceptor — otomatis sisipkan token ke setiap request
+  api.interceptors.request.use(config => {
+    const token = localStorage.getItem('koni_token')
+    if (token) config.headers.Authorization = `Bearer ${token}`
+    return config
+  })
+
+  // Interceptor response — kalau 401, redirect ke login
+  api.interceptors.response.use(
+    res => res,
+    err => {
+      if (err.response?.status === 401) {
+        localStorage.removeItem('koni_token')
+        window.location.href = '/login'
+      }
+      return Promise.reject(err)
+    }
+  )
+
+  export default api
+
+Keuntungan pola ini: token tidak perlu ditulis manual di setiap
+request. Cukup import api dan langsung pakai — token otomatis
+tersisipkan. Kalau token expired, user otomatis di-logout.
+
+[BAGIAN 4 - AUTHCONTEXT FRONTEND]
+AuthContext menjadi penghubung antara login dan seluruh aplikasi:
+
+  async function login(username, password) {
+    try {
+      const res = await api.post('/auth/login', { username, password })
+      const { token, user } = res.data
+
+      localStorage.setItem('koni_token', token)
+      localStorage.setItem('koni_user', JSON.stringify(user))
+      setUser(user)
+
+      return { success: true, role: user.role }
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message }
+    }
+  }
+
+Setelah login sukses, token dan data user disimpan di localStorage.
+Halaman LoginPage kemudian redirect berdasarkan role:
+
+  const ROLE_REDIRECT = {
+    admin:   '/admin/dashboard',
+    pelatih: '/dashboard/pelatih',
+    atlet:   '/dashboard/atlet',
+    wasit:   '/dashboard/wasit',
+  }
+
+[DEMO]
+[Buka DevTools → Network → login → lihat request ke /api/auth/login
+→ lihat response berisi token → lihat localStorage tersimpan token]
+[Coba akses /admin/dashboard → redirect ke login karena belum auth]
+[Login sebagai admin → berhasil masuk]
+
+Selanjutnya teman saya akan menjelaskan panel admin dan CRUD data.
+
+
+================================================================
+ORANG 3 — Panel Admin, CRUD via API, dan Halaman Data Olahraga
+================================================================
+Durasi estimasi: 3-4 menit
+
+[INTRO]
+Nama saya [nama]. Saya akan menjelaskan panel admin sebagai pusat
+pengelolaan seluruh data, route proteksi per halaman, serta
+bagaimana operasi CRUD dilakukan dari frontend ke backend MySQL.
+
+[BAGIAN 1 - ROUTING DAN PROTEKSI HALAMAN]
+File App.jsx mengatur semua routing aplikasi dengan React Router v6.
+Ada tiga kelompok route: publik, admin, dan dashboard per role.
+
+  <Routes>
+    {/* Publik */}
+    <Route element={<PublicLayout />}>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/berita" element={<BeritaPage />} />
+      ...
+    </Route>
+
+    {/* Dashboard per role — masing-masing diproteksi */}
+    <Route path="/dashboard/pelatih"
+      element={<RoleRoute role="pelatih"><PelatihDashboard /></RoleRoute>} />
+    <Route path="/dashboard/atlet"
+      element={<RoleRoute role="atlet"><AtletDashboard /></RoleRoute>} />
+    <Route path="/dashboard/wasit"
+      element={<RoleRoute role="wasit"><WasitDashboard /></RoleRoute>} />
+
+    {/* Admin — nested routes */}
+    <Route path="/admin"
+      element={<RoleRoute role="admin"><AdminLayout /></RoleRoute>}>
+      <Route path="atlet"   element={<AtletPage />} />
+      <Route path="pelatih" element={<PelatihPage />} />
+      <Route path="wasit"   element={<WasitPage />} />
+      <Route path="cabor"   element={<CaborPage />} />
+      ...
+    </Route>
+  </Routes>
+
+Komponen RoleRoute membungkus PrivateRoute yang mengecek
+dua hal: apakah user sudah login, dan apakah role-nya sesuai.
+Kalau tidak, user diarahkan ke halaman yang tepat.
+
+[BAGIAN 2 - CRUD ATLET VIA API]
+Sekarang kita lihat bagaimana CRUD bekerja di AtletPage.
+Berbeda dari sebelumnya yang pakai localStorage, sekarang
+semua data diambil dan disimpan langsung ke MySQL melalui API.
+
+  export default function AtletPage() {
+    const [atlet, setAtlet] = useState([])
+
+    // Load data dari API saat komponen mount
+    useEffect(() => { load() }, [])
+
+    async function load() {
+      const r = await api.get('/admin/atlet')
+      setAtlet(r.data.data)
+    }
+
+    async function handleSubmit() {
+      if (target) {
+        // Edit → PUT request
+        await api.put(`/admin/atlet/${target.id}`, form)
+        // Kalau ada username baru → buat akun login
+        if (form.username && form.password) {
+          await api.post('/admin/create-account', {
+            ref_id: target.id, role: 'atlet',
+            username: form.username, password: form.password
+          })
+        }
+      } else {
+        // Tambah → POST request (username & password otomatis buat akun)
+        await api.post('/admin/atlet', form)
+      }
+      load() // Refresh data
+    }
+
+    async function handleHapus() {
+      await api.delete(`/admin/atlet/${target.id}`)
+      load()
+    }
+  }
+
+Fitur menarik di sini: saat admin menambah atlet, ada form
+untuk mengisi username dan password. Sehingga atlet tersebut
+langsung bisa login ke dashboard-nya tanpa perlu proses terpisah.
+
+[BAGIAN 3 - ROUTE ADMIN DI BACKEND]
+Di backend, routes/admin.js menangani semua CRUD:
+
+  // GET semua atlet dengan join ke tabel cabor
+  router.get('/atlet', ...guard, async (req, res, next) => {
+    try {
+      const [rows] = await db.query(`
+        SELECT a.*, c.nama AS cabor_nama
+        FROM atlet a
+        LEFT JOIN cabor c ON a.cabor_id = c.id
+        ORDER BY a.nama
+      `)
+      res.json({ success: true, data: rows })
+    } catch (err) { next(err) }
+  })
+
+  // POST tambah atlet + buat akun user kalau ada username
+  router.post('/atlet', ...guard, async (req, res, next) => {
+    try {
+      const { nama, cabor_id, username, password, ...rest } = req.body
+      const id = uuid()
+      await db.query('INSERT INTO atlet (id, nama, cabor_id, ...) VALUES (...)',
+        [id, nama, cabor_id, ...])
+
+      // Buat akun login atlet otomatis
+      if (username && password) {
+        const hash = await bcrypt.hash(password, 10)
+        await db.query('INSERT INTO users (id, username, password_hash, role, ref_id) VALUES (...)',
+          [uuid(), username, hash, 'atlet', id])
+      }
+      res.status(201).json({ success: true, id })
+    } catch (err) { next(err) }
+  })
+
+Dengan menggunakan mysql2/promise, semua query database bisa
+ditulis dengan async/await yang bersih dan mudah dibaca.
+UUID digunakan sebagai primary key agar ID tidak mudah ditebak.
+
+[BAGIAN 4 - HALAMAN WASIT — BARU]
+Salah satu penambahan baru di versi ini adalah halaman Data Wasit
+di panel admin, lengkap dengan CRUD dan pembuatan akun login.
+
+  // Wasit punya field khusus: lisensi dan grade
+  // Ini penting untuk manajemen kualifikasi wasit
+  INSERT INTO wasit (id, nama, lisensi, grade, cabor_id, ...)
+  VALUES (uuid(), 'Hartono, S.Pd.', 'WAS-D-001', 'nasional', ...)
+
+Di sidebar admin, menu sekarang mencakup:
+Data Atlet, Data Pelatih, Data Wasit, Cabang Olahraga, Prestasi.
+
+[DEMO]
+[Tunjukkan: admin login → Data Atlet → tambah atlet baru
+dengan isi form termasuk username+password → simpan
+→ logout → login dengan akun atlet baru → masuk dashboard atlet]
+[Tunjukkan tabel wasit → tambah wasit baru]
+
+Selanjutnya teman saya akan menjelaskan dashboard per role
+dan koneksi frontend-backend secara end-to-end.
+
+
+================================================================
+ORANG 4 — Dashboard Pelatih/Atlet/Wasit, Landing Page & Quill
+================================================================
+Durasi estimasi: 3-4 menit
+
+[INTRO]
+Nama saya [nama]. Saya akan menjelaskan fitur yang paling
+dirasakan langsung oleh pengguna: dashboard khusus per role
+untuk pelatih, atlet, dan wasit; serta landing page publik yang
+sudah tersinkronisasi dengan data dari database MySQL.
+
+[BAGIAN 1 - LANDING PAGE SINKRON DATABASE]
+Landing page sekarang menampilkan statistik real-time dari database,
+bukan lagi data statis. Ini dilakukan dengan useEffect yang
+memanggil API saat komponen pertama kali dimuat:
+
+  const [stats, setStats] = useState({
+    totalAtlet: 0, totalCabor: 0, totalMedali: 0, medaliEmas: 0,
+    caborAktif: []
+  })
+
+  useEffect(() => {
+    async function loadStats() {
+      // Fetch tiga endpoint sekaligus dengan Promise.all
+      const [rAtlet, rCabor, rPrestasi] = await Promise.all([
+        api.get('/admin/atlet'),
+        api.get('/admin/cabor'),
+        api.get('/admin/prestasi'),
+      ])
+
+      const caborAktif = rCabor.data.data.filter(c => c.status === 'aktif')
+
+      setStats({
+        totalAtlet:  rAtlet.data.data.length,
+        totalCabor:  caborAktif.length,
+        totalMedali: rPrestasi.data.data.length,
+        medaliEmas:  rPrestasi.data.data.filter(p => p.medali === 'emas').length,
+        caborAktif,
+      })
+    }
+    loadStats()
+  }, [])
+
+Promise.all digunakan agar tiga request berjalan paralel,
+bukan berurutan, sehingga loading lebih cepat. Jika backend
+mati, stats tetap 0 tanpa crash berkat catch yang sudah disiapkan.
+
+Sementara konten publik seperti berita, pengumuman, kegiatan,
+dan galeri tetap dikelola lewat Context API dengan localStorage —
+karena admin mengedit konten tersebut langsung dari panel admin
+frontend, bukan melalui API.
+
+[BAGIAN 2 - DASHBOARD PELATIH]
+Dashboard pelatih terhubung penuh ke backend. Pelatih bisa
+mengelola program latihan dan presensi atlet.
+
+  // Ambil program latihan dari API, filter per bulan
+  async function loadPrograms() {
+    const r = await api.get(`/pelatih/program-latihan?bulan=${bulan}`)
+    setPrograms(r.data.data)
+  }
+
+  // Tambah program latihan baru
+  async function handleSimpan() {
+    await api.post('/pelatih/program-latihan', {
+      judul, deskripsi, tanggal, durasi_menit, lokasi
+    })
+    loadPrograms() // Refresh otomatis
+  }
+
+Di backend, route pelatih otomatis mengambil cabor_id dari
+data pelatih yang login, sehingga program latihan hanya tampil
+untuk cabor yang relevan.
+
+Fitur presensi bekerja seperti ini: pelatih klik tombol
+"Presensi" di program tertentu, sistem otomatis memuat daftar
+atlet dari cabor yang sama, lalu pelatih bisa mengisi status
+hadir, izin, sakit, atau alpha untuk tiap atlet.
+
+  // Upsert presensi — update kalau sudah ada, insert kalau belum
+  for (const item of data) {
+    await db.query(`
+      INSERT INTO presensi (id, program_latihan_id, atlet_id, status)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE status = VALUES(status)
+    `, [uuid(), program_latihan_id, item.atlet_id, item.status])
+  }
+
+[BAGIAN 3 - DASHBOARD ATLET]
+Dashboard atlet menampilkan informasi yang relevan untuk atlet:
+
+Pertama, riwayat presensi latihan yang diisi oleh pelatih.
+Data ini di-join dari tabel presensi, program_latihan, dan pelatih
+sehingga atlet bisa melihat sesi latihan apa, kapan, dan siapa
+pelatihnya.
+
+Kedua, jadwal latihan mendatang diambil dari program_latihan
+yang dibuat pelatih di cabor yang sama.
+
+Ketiga, data prestasi dan medali yang diraih atlet tersebut.
+
+Keempat, fitur upload sertifikat kejuaraan menggunakan Multer:
+
+  // Backend: Multer menyimpan file ke folder /uploads/sertifikat
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/sertifikat'),
+    filename:    (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+  })
+
+  // Frontend: kirim sebagai FormData
+  const fd = new FormData()
+  fd.append('file', file)
+  fd.append('judul', form.judul)
+  await api.post('/atlet/sertifikat', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+
+[BAGIAN 4 - DASHBOARD WASIT & QUILL EDITOR]
+Dashboard wasit memiliki fitur unik: bisa mencatat pertandingan
+yang dihadiri beserta cabor dan lokasinya.
+
+  // Input pertandingan
+  await api.post('/wasit/pertandingan', {
+    nama_event, tanggal, lokasi, cabor_id, keterangan
+  })
+
+Data pertandingan langsung tersimpan ke MySQL dan tersedia
+kapan saja wasit ingin melihat riwayat tugasnya.
+
+Untuk pengelolaan konten berita di admin, kami menggunakan
+Quill.js sebagai rich text editor yang di-load dari CDN:
+
+  const quill = new window.Quill(editorDiv, {
+    theme: 'snow',
+    modules: { toolbar: ['bold','italic','underline',
+                {header:[1,2,3]}, 'link','image','blockquote'] }
+  })
+
+  quill.on('text-change', () => {
+    onChange(quill.root.innerHTML) // simpan sebagai HTML string
+  })
+
+Output HTML dari Quill disimpan di localStorage dan di-render
+di halaman publik detail berita menggunakan dangerouslySetInnerHTML.
+
+[DEMO & PENUTUP]
+[Demo end-to-end:
+1. Landing page → stats real dari DB → scroll konten
+2. /login → login pelatih (budi.santoso / koni2024)
+3. Dashboard pelatih → tambah program latihan → input presensi
+4. Logout → login atlet (ahmad.rizki / koni2024)
+5. Dashboard atlet → lihat presensi yang baru diisi → upload piagam
+6. Logout → login wasit (hartono / koni2024)
+7. Dashboard wasit → tambah pertandingan
+8. Logout → login admin → Data Wasit → tambah wasit baru]
+
+Demikian presentasi dari kelompok kami. Sistem Informasi KONI
+Kabupaten Banyumas ini berhasil memenuhi seluruh ketentuan tugas:
+
+Dari sisi frontend:
+✓ React 18 sebagai framework utama
+✓ Context API untuk state management konten publik
+✓ React Router v6 untuk navigasi multi-halaman
+✓ JavaScript ES6+ — async/await, destructuring, arrow function
+✓ Responsive Web Design dengan Tailwind CSS v4
+
+Dari sisi backend:
+✓ Node.js + Express.js untuk REST API
+✓ MySQL sebagai database relasional
+✓ JWT untuk autentikasi multi-role yang aman
+✓ Multer untuk file upload sertifikat
+✓ Bcrypt untuk keamanan password
+
+Terima kasih sudah menyimak presentasi kami.
+
+================================================================
+DAFTAR AKUN DEMO — SEMUA PASSWORD: koni2024
+================================================================
+ADMIN   : admin
+PELATIH : budi.santoso / sri.wahyuni / hendra.gunawan / dwi.cahyono
+ATLET   : ahmad.rizki / dewi.rahayu / fajar.nugroho / nadia.febriana
+WASIT   : hartono / sari.dewi / bambang.setiadi
+
+================================================================
+URUTAN DEMO YANG DISARANKAN
+================================================================
+1. Buka landing page → scroll semua seksi
+   → tunjukkan angka stats real dari database
+2. Klik ticker pengumuman → modal muncul
+3. Navigasi ke /berita, /galeri (filter + lightbox)
+4. Buka /login → login admin → sidebar ada menu Wasit
+5. Data Atlet → tambah atlet baru (isi username+password)
+6. Data Wasit → tunjukkan CRUD wasit
+7. Kelola Berita → tambah berita dengan Quill editor → publish
+8. Logout → login pelatih → program latihan → input presensi
+9. Logout → login atlet → lihat presensi → upload sertifikat
+10. Logout → login wasit → tambah pertandingan
+
+================================================================
+PERSIAPAN SEBELUM REKAM
+================================================================
+- Backend: npm run dev (pastikan "MySQL connected successfully")
+- Frontend: npm run dev
+- Zoom browser 110-125% agar tulisan jelas
+- Siapkan file gambar/PDF untuk demo upload sertifikat
+- Pastikan dummy_data.sql sudah diimport ke MySQL
+
+================================================================
+PEMBAGIAN LAYAR UNTUK SETIAP PRESENTER
+================================================================
+Orang 1: VS Code (struktur folder kedua project) + terminal backend
+Orang 2: VS Code (auth.js backend + axios.js frontend) + DevTools Network
+Orang 3: VS Code (admin.js backend + AtletPage.jsx) + demo admin panel
+Orang 4: VS Code (LandingPage.jsx + PelatihDashboard.jsx) + demo role
+================================================================

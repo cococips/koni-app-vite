@@ -62,9 +62,11 @@ router.delete('/pelatih/:id', ...guard, async (req, res, next) => {
 })
 
 // ATLET
+// [PRESENTASI: ORANG 3] GET semua atlet dengan join ke tabel cabor
 router.get('/atlet', ...guard, async (req, res, next) => {
   try { const[rows]=await db.query('SELECT a.*,c.nama AS cabor_nama FROM atlet a LEFT JOIN cabor c ON a.cabor_id=c.id ORDER BY a.nama'); res.json({success:true,data:rows}) } catch(err){next(err)}
 })
+// [PRESENTASI: ORANG 3] POST tambah atlet + buat akun user otomatis kalau ada username
 router.post('/atlet', ...guard, async (req, res, next) => {
   try {
     const{nik,nama,tempat_lahir,tanggal_lahir,jenis_kelamin,alamat,no_hp,cabor_id,status,username,password}=req.body
@@ -72,6 +74,7 @@ router.post('/atlet', ...guard, async (req, res, next) => {
     const id=uuid()
     await db.query('INSERT INTO atlet (id,nik,nama,tempat_lahir,tanggal_lahir,jenis_kelamin,alamat,no_hp,cabor_id,status) VALUES (?,?,?,?,?,?,?,?,?,?)',
       [id,nik||null,nama,tempat_lahir||null,tanggal_lahir||null,jenis_kelamin||'L',alamat||null,no_hp||null,cabor_id,status||'aktif'])
+    // [PRESENTASI: ORANG 3] Buat akun login atlet otomatis jika username diisi
     if (username&&password) await createUserAccount(id,'atlet',username,password)
     res.status(201).json({success:true,id})
   } catch(err){next(err)}

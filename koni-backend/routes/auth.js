@@ -3,7 +3,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db'); // Sesuaikan path jika berbeda
 
-// Endpoint POST /api/auth/login
+// [PRESENTASI: ORANG 2] Endpoint POST /api/auth/login untuk autentikasi JWT
+// Endpoint ini digunakan oleh semua role (satu pintu)
 router.post('/login', async (req, res, next) => {
   try {
     const { username, password } = req.body;
@@ -28,7 +29,7 @@ router.post('/login', async (req, res, next) => {
     }
     // ----------------------------------------
 
-    // Logika asli untuk user lain (Pelatih, Atlet, Wasit) yang ngecek ke Database:
+    // [PRESENTASI: ORANG 2] 1. Cari user di database berdasarkan username
     const [users] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
     const user = users[0];
 
@@ -36,9 +37,7 @@ router.post('/login', async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Username tidak ditemukan.' });
     }
 
-    // --- PENGECEKAN PASSWORD (DIUBAH) ---
-    // Kita cek apakah password cocok sebagai teks biasa (untuk data dummy)
-    // ATAU cocok dengan format hash bcrypt (untuk data asli)
+    // [PRESENTASI: ORANG 2] 2. Verifikasi password dengan bcrypt
     let isMatch = false;
     
     if (password === user.password_hash) {
@@ -52,7 +51,7 @@ router.post('/login', async (req, res, next) => {
     }
     // ------------------------------------
 
-    // Buat token JWT jika sukses
+    // [PRESENTASI: ORANG 2] 3. Generate JWT token berisi role dan data user
     const payload = { 
       id: user.id, 
       username: user.username, 
@@ -60,7 +59,7 @@ router.post('/login', async (req, res, next) => {
       ref_id: user.ref_id 
     };
     
-    const token = jwt.sign(payload, process.env.JWT_SECRET || 'rahasia_uts_koni', { expiresIn: '1d' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET || 'rahasia_uts_koni', { expiresIn: '7d' });
 
     res.json({ 
       success: true, 

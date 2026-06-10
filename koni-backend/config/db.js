@@ -1,5 +1,8 @@
 const mysql = require('mysql2/promise')
 
+// [PRESENTASI: ORANG 1] Koneksi database menggunakan connection pool dari mysql2
+// Connection pool lebih efisien karena bisa menangani banyak request
+// secara bersamaan tanpa membuka koneksi baru setiap request.
 const pool = mysql.createPool({
   host:               process.env.DB_HOST     || 'localhost',
   port:               process.env.DB_PORT     || 3306,

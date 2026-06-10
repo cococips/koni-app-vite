@@ -58,7 +58,10 @@ function TabPertandingan() {
     setLoading(true)
     try {
       if (editId) await api.put(`/wasit/pertandingan/${editId}`, form)
-      else await api.post('/wasit/pertandingan', form)
+      else {
+        // [PRESENTASI: ORANG 4] Input pertandingan baru dari dashboard wasit
+        await api.post('/wasit/pertandingan', form)
+      }
       setModal(false); setEditId(null); setForm({nama_event:'',tanggal:'',lokasi:'',cabor_id:'',keterangan:''})
       load()
     } catch (err) { alert(err.response?.data?.message||'Gagal menyimpan.') }

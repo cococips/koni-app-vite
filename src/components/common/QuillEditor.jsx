@@ -66,7 +66,7 @@ export default function QuillEditor({ value = '', onChange, placeholder = 'Tulis
       editorDiv.style.height = height
       containerRef.current.appendChild(editorDiv)
 
-      // Init Quill
+      // [PRESENTASI: ORANG 4] Inisialisasi Quill.js sebagai rich text editor
       const quill = new window.Quill(editorDiv, {
         theme:       'snow',
         placeholder,
@@ -78,9 +78,10 @@ export default function QuillEditor({ value = '', onChange, placeholder = 'Tulis
         quill.root.innerHTML = value
       }
 
-      // Listen perubahan
+      // [PRESENTASI: ORANG 4] Listen saat teks berubah
       quill.on('text-change', () => {
         const html = quill.root.innerHTML
+        // [PRESENTASI: ORANG 4] Output HTML dari Quill disimpan via onChange
         onChangeRef.current?.(html === '<p><br></p>' ? '' : html)
       })
 

@@ -11,6 +11,7 @@ export function AuthProvider({ children }) {
     } catch { return null }
   })
 
+  // [PRESENTASI: ORANG 2] Fungsi login yang menghubungkan frontend dan backend
   async function login(username, password) {
     try {
       const res = await api.post('/auth/login', { username, password })
@@ -18,6 +19,7 @@ export function AuthProvider({ children }) {
 
       localStorage.setItem('koni_token', token)
       localStorage.setItem('koni_user', JSON.stringify(userData))
+      // [PRESENTASI: ORANG 2] Setelah login sukses, token dan data user disimpan di localStorage
       setUser(userData)
 
       return { success: true, role: userData.role }

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-// Redirect berdasarkan role setelah login
+// [PRESENTASI: ORANG 2] Halaman LoginPage kemudian redirect berdasarkan role
 const ROLE_REDIRECT = {
   admin:   '/admin/dashboard',
   pelatih: '/dashboard/pelatih',

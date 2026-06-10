@@ -26,6 +26,7 @@ export default function AtletPage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
+      // [PRESENTASI: ORANG 3] Load data dari API saat komponen mount
       const [rAtlet, rCabor] = await Promise.all([
         api.get('/admin/atlet'),
         api.get('/admin/cabor'),
@@ -62,8 +63,9 @@ export default function AtletPage() {
     setSaving(true)
     try {
       if (target) {
+        // [PRESENTASI: ORANG 3] Edit -> PUT request
         await api.put(`/admin/atlet/${target.id}`, form)
-        // Buat akun kalau username diisi saat edit
+        // [PRESENTASI: ORANG 3] Kalau ada username baru -> buat akun login otomatis
         if (form.username && form.password) {
           await api.post('/admin/create-account', {
             ref_id: target.id, role: 'atlet',
@@ -71,9 +73,10 @@ export default function AtletPage() {
           })
         }
       } else {
+        // [PRESENTASI: ORANG 3] Tambah -> POST request (username & password otomatis buat akun)
         await api.post('/admin/atlet', form)
       }
-      tutup(); load()
+      tutup(); load() // [PRESENTASI: ORANG 3] Refresh data setelah operasi selesai
     } catch (err) {
       alert(err.response?.data?.message || 'Gagal menyimpan.')
     }

@@ -4,13 +4,14 @@ const api = axios.create({
   baseURL: 'http://localhost:5000/api',
 })
 
-// Otomatis sisipkan token ke setiap request kalau ada
+// [PRESENTASI: ORANG 2] Interceptor request — otomatis sisipkan token JWT ke setiap request
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('koni_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
+// [PRESENTASI: ORANG 2] Interceptor response — kalau 401 (Unauthorized), redirect ke login
 // Hanya redirect ke login kalau bukan dari public page
 // dan bukan request stats landing page
 api.interceptors.response.use(

@@ -102,6 +102,7 @@ export default function LandingPage() {
   const navigate = useNavigate()
 
   // ── Data statistik dari API/database ──────────────────────────────────────
+  // [PRESENTASI: ORANG 4] State untuk menyimpan statistik real-time dari database
   const [stats, setStats] = useState({
     totalAtlet: 0, totalCabor: 0, totalMedali: 0, medaliEmas: 0,
     caborAktif: []
@@ -111,7 +112,8 @@ export default function LandingPage() {
 useEffect(() => {
     async function loadStats() {
       try {
-        // Ambil data dari endpoint publik (tanpa token)
+        // [PRESENTASI: ORANG 4] Fetch statistik langsung dari database via API
+        // Jika pakai Promise.all bisa memanggil multiple endpoint sekaligus secara paralel
         const response = await publicApi.get('/public/stats')
         const data = response.data.data
 
