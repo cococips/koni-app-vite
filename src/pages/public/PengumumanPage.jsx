@@ -32,6 +32,18 @@ function ModalDetail({ item, onClose }) {
           ) : (
             <p className="text-gray-700 text-sm leading-relaxed">{item.isi || 'Tidak ada isi pengumuman.'}</p>
           )}
+
+          {item.file_url && (
+            <div className="mt-6">
+              <a href={item.file_url} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex w-max">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Unduh Lampiran PDF
+              </a>
+            </div>
+          )}
+
           <p className="text-xs text-gray-400 mt-6 pt-4 border-t border-gray-100">
             Diumumkan: {formatTanggal(item.created_at)}
           </p>

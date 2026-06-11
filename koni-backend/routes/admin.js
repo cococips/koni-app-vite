@@ -182,4 +182,14 @@ router.post('/upload-berita', ...guard, (req, res, next) => {
   res.json({ success: true, url })
 })
 
+// Upload PDF untuk pengumuman
+router.post('/upload-pengumuman', ...guard, (req, res, next) => {
+  req.uploadSubdir = 'pengumuman'
+  next()
+}, upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ success: false, message: 'Tidak ada file yang diupload.' })
+  const url = `http://localhost:5000/uploads/pengumuman/${req.file.filename}`
+  res.json({ success: true, url })
+})
+
 module.exports = router

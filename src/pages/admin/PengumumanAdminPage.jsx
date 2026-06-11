@@ -2,15 +2,38 @@ import { useState } from 'react'
 import { usePengumuman } from '../../context/PengumumanContext'
 import Modal from '../../components/common/Modal'
 import QuillEditor from '../../components/common/QuillEditor'
+import api from '../../api/axios'
 
-const empty = { judul: '', isi_html: '', tipe: 'info' }
+const empty = { judul: '', isi_html: '', tipe: 'info', file_url: '' }
 
 export default function PengumumanAdminPage() {
   const { pengumuman, tambah, edit, hapus, togglePublish } = usePengumuman()
   const [modal, setModal]   = useState(false)
   const [target, setTarget] = useState(null)
   const [form, setForm]     = useState(empty)
+  const [uploading, setUploading] = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  async function handleUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    const fd = new FormData()
+    fd.append('file', file)
+    setUploading(true)
+    try {
+      const res = await api.post('/admin/upload-pengumuman', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      if (res.data.success) {
+        set('file_url', res.data.url)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal upload file')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
 
   function buka(item = null) {
     setForm(item ? { ...empty, ...item } : empty)
@@ -100,6 +123,17 @@ export default function PengumumanAdminPage() {
               <option value="info">ℹ Informasi Umum</option>
               <option value="penting">⚠ Penting</option>
             </select>
+          </div>
+          <div>
+            <label className="label-field">Upload File Lampiran (PDF)</label>
+            <div className="flex gap-2">
+              <input className="input-field flex-1" value={form.file_url || ''}
+                onChange={e => set('file_url', e.target.value)} placeholder="https://... atau upload file PDF" />
+              <input type="file" id="upload-file-pengumuman" className="hidden" accept=".pdf" onChange={handleUpload} />
+              <label htmlFor="upload-file-pengumuman" className="btn-secondary cursor-pointer whitespace-nowrap m-0" style={{ marginBottom: 0 }}>
+                {uploading ? 'Mengupload...' : 'Pilih File PDF'}
+              </label>
+            </div>
           </div>
           <div>
             <label className="label-field mb-2 block">Isi Pengumuman (Rich Text)</label>
