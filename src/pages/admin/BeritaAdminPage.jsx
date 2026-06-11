@@ -3,6 +3,7 @@ import { useBerita } from '../../context/BeritaContext'
 import Modal from '../../components/common/Modal'
 import SearchBar from '../../components/common/SearchBar'
 import QuillEditor from '../../components/common/QuillEditor'
+import api from '../../api/axios'
 
 const kategoriList = ['Prestasi', 'Program', 'Organisasi', 'Umum']
 const empty = { judul: '', ringkasan: '', isi_html: '', kategori: 'Prestasi', foto_url: '' }
@@ -13,6 +14,8 @@ export default function BeritaAdminPage() {
   const [modal, setModal]   = useState(false)
   const [target, setTarget] = useState(null)
   const [form, setForm]     = useState(empty)
+  const [uploading, setUploading] = useState(false)
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const displayed = berita.filter(b =>
@@ -32,6 +35,27 @@ export default function BeritaAdminPage() {
     if (target) editBerita(target.id, payload)
     else tambahBerita(payload)
     tutup()
+  }
+
+  async function handleUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    const fd = new FormData()
+    fd.append('file', file)
+    setUploading(true)
+    try {
+      const res = await api.post('/admin/upload-berita', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      if (res.data.success) {
+        set('foto_url', res.data.url)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal upload foto')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
   }
 
   return (
@@ -108,9 +132,16 @@ export default function BeritaAdminPage() {
               </select>
             </div>
             <div>
-              <label className="label-field">URL Foto Sampul</label>
-              <input className="input-field" value={form.foto_url || ''}
-                onChange={e => set('foto_url', e.target.value)} placeholder="https://..." />
+              <label className="label-field">URL / Upload Foto Sampul</label>
+              <div className="flex gap-2">
+                <input className="input-field flex-1" value={form.foto_url || ''}
+                  onChange={e => set('foto_url', e.target.value)} placeholder="https://... atau upload file" />
+                <input type="file" id="upload-foto-berita" className="hidden" accept="image/*" onChange={handleUpload} />
+                <label htmlFor="upload-foto-berita" className="btn-secondary cursor-pointer whitespace-nowrap m-0" style={{ marginBottom: 0 }}>
+                  {uploading ? 'Mengupload...' : 'Pilih File'}
+                </label>
+              </div>
+              {form.foto_url && <img src={form.foto_url} alt="preview" className="mt-2 w-full h-32 object-cover rounded-lg" onError={e => e.target.style.display='none'}/>}
             </div>
           </div>
           <div>
