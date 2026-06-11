@@ -1,0 +1,51 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer components {
+  /* Tombol */
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-koni-blue text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none gap-2;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all focus:ring-2 focus:ring-gray-200 focus:outline-none gap-2;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-100 transition-all gap-2;
+  }
+
+  /* Form */
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-koni-blue focus:border-koni-blue outline-none transition-shadow bg-white;
+  }
+
+  .label-field {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+
+  /* Layout */
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden;
+  }
+
+  .table-wrapper {
+    @apply w-full overflow-x-auto rounded-lg border border-gray-100 bg-white;
+  }
+
+  .tbl {
+    @apply w-full text-left border-collapse whitespace-nowrap;
+  }
+
+  .tbl th {
+    @apply bg-gray-50 text-gray-600 text-xs uppercase tracking-wider font-semibold px-4 py-3 border-b border-gray-200;
+  }
+
+  .tbl td {
+    @apply px-4 py-3 text-sm text-gray-700 border-b border-gray-100;
+  }
+
+  .tbl tbody tr {
+    @apply hover:bg-blue-50 transition-colors;
+  }
+}

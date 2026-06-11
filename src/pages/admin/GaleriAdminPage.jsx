@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useGaleri } from '../../context/GaleriContext'
 import Modal from '../../components/common/Modal'
+import api from '../../api/axios'
 
 const empty = { judul: '', deskripsi: '', url_foto: '', kategori: 'Kejuaraan' }
 const kategoriList = ['Kejuaraan', 'Latihan', 'Program', 'Lainnya']
@@ -10,6 +11,8 @@ export default function GaleriAdminPage() {
   const [modal, setModal]   = useState(false)
   const [target, setTarget] = useState(null)
   const [form, setForm]     = useState(empty)
+  const [uploading, setUploading] = useState(false)
+  
   const set = (k,v) => setForm(f => ({...f, [k]: v}))
   function buka(item=null) { setForm(item ? {...item} : empty); setTarget(item); setModal('form') }
   function tutup() { setModal(false); setTarget(null) }
@@ -18,6 +21,28 @@ export default function GaleriAdminPage() {
     if (target) edit(target.id, form); else tambah(form)
     tutup()
   }
+
+  async function handleUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    const fd = new FormData()
+    fd.append('file', file)
+    setUploading(true)
+    try {
+      const res = await api.post('/admin/upload-galeri', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      if (res.data.success) {
+        set('url_foto', res.data.url)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal upload foto')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -56,7 +81,16 @@ export default function GaleriAdminPage() {
         <div className="space-y-4">
           <div><label className="label-field">Judul *</label><input className="input-field" value={form.judul} onChange={e=>set('judul',e.target.value)}/></div>
           <div><label className="label-field">Kategori</label><select className="input-field" value={form.kategori} onChange={e=>set('kategori',e.target.value)}>{kategoriList.map(k=><option key={k} value={k}>{k}</option>)}</select></div>
-          <div><label className="label-field">URL Foto</label><input className="input-field" value={form.url_foto} onChange={e=>set('url_foto',e.target.value)} placeholder="https://... (untuk UTS, pakai link gambar)"/></div>
+          <div>
+            <label className="label-field">URL Foto / Upload Lokal</label>
+            <div className="flex gap-2">
+              <input className="input-field flex-1" value={form.url_foto} onChange={e=>set('url_foto',e.target.value)} placeholder="https://... atau upload file"/>
+              <input type="file" id="upload-foto" className="hidden" accept="image/*" onChange={handleUpload} />
+              <label htmlFor="upload-foto" className="btn-secondary cursor-pointer whitespace-nowrap m-0" style={{ marginBottom: 0 }}>
+                {uploading ? 'Mengupload...' : 'Pilih File'}
+              </label>
+            </div>
+          </div>
           {form.url_foto && <img src={form.url_foto} alt="preview" className="w-full h-40 object-cover rounded-lg" onError={e => e.target.style.display='none'}/>}
           <div><label className="label-field">Deskripsi</label><textarea className="input-field resize-none" rows={2} value={form.deskripsi} onChange={e=>set('deskripsi',e.target.value)}/></div>
         </div>

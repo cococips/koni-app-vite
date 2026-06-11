@@ -142,6 +142,8 @@ router.get('/prestasi', ...guard, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
+const upload = require('../middleware/upload')
+
 // GET /api/admin/stats — ringkasan untuk dashboard admin
 router.get('/stats', ...guard, async (req, res, next) => {
   try {
@@ -160,5 +162,14 @@ router.get('/stats', ...guard, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
+// Upload image untuk galeri
+router.post('/upload-galeri', ...guard, (req, res, next) => {
+  req.uploadSubdir = 'galeri'
+  next()
+}, upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ success: false, message: 'Tidak ada file yang diupload.' })
+  const url = `http://localhost:5000/uploads/galeri/${req.file.filename}`
+  res.json({ success: true, url })
+})
 
 module.exports = router
