@@ -1,7 +1,6 @@
 
 <div align="center">
 
-
 <img src="koni.png" alt="KONI Logo" width="100" height="100" />
 
 # 🏅 KONI Kabupaten Banyumas
