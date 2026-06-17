@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { usePengurus } from '../../context/PengurusContext'
+import { useState, useEffect } from 'react'
+import api from '../../api/axios'
 import Modal from '../../components/common/Modal'
 
 const LEVEL_LABEL = {
@@ -9,35 +9,79 @@ const LEVEL_LABEL = {
   4: 'Level 4 — Kabid / Setara',
 }
 
-const empty = { nama: '', jabatan: '', periode: '2022-2026', level: 2, parent_id: '', urutan: 99 }
+const empty = { nama: '', jabatan: '', periode: '2022-2026', level: 2, parent_id: '', order_num: 99, quotes: '' }
 
 export default function PengurusAdminPage() {
-  const { pengurus, tambah, edit, hapus, togglePublish } = usePengurus()
+  const [pengurus, setPengurus] = useState([])
   const [modal, setModal]   = useState(false)
   const [target, setTarget] = useState(null)
   const [form, setForm]     = useState(empty)
+  const [fileFoto, setFileFoto] = useState(null)
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  function buka(item = null) {
-    setForm(item ? { ...empty, ...item, level: item.level ?? 2 } : empty)
-    setTarget(item)
-    setModal('form')
-  }
-  function tutup() { setModal(false); setTarget(null) }
-  function submit() {
-    if (!form.nama || !form.jabatan) return alert('Nama dan jabatan wajib diisi.')
-    const payload = {
-      ...form,
-      level: Number(form.level),
-      urutan: Number(form.urutan),
-      parent_id: form.parent_id || null,
+  useEffect(() => {
+    fetchPengurus()
+  }, [])
+
+  async function fetchPengurus() {
+    try {
+      const { data } = await api.get('/admin/pengurus')
+      if (data.success) setPengurus(data.data)
+    } catch (err) {
+      console.error('Gagal fetch pengurus:', err)
     }
-    if (target) edit(target.id, payload); else tambah(payload)
-    tutup()
   }
 
-  // Sorted by level then urutan for display
-  const sorted = [...pengurus].sort((a, b) => (a.level - b.level) || (a.urutan - b.urutan))
+  function buka(item = null) {
+    setForm(item ? { ...empty, ...item, level: item.level ?? 2, order_num: item.order_num ?? 99 } : empty)
+    setTarget(item)
+    setFileFoto(null)
+    setModal('form')
+  }
+
+  function tutup() { setModal(false); setTarget(null) }
+
+  async function submit() {
+    if (!form.nama || !form.jabatan) return alert('Nama dan jabatan wajib diisi.')
+    
+    const formData = new FormData()
+    formData.append('nama', form.nama)
+    formData.append('jabatan', form.jabatan)
+    formData.append('periode', form.periode)
+    formData.append('level', form.level)
+    if (form.parent_id) formData.append('parent_id', form.parent_id)
+    formData.append('order_num', form.order_num)
+    if (form.quotes) formData.append('quotes', form.quotes)
+    if (fileFoto) formData.append('foto', fileFoto)
+
+    try {
+      if (target) {
+        await api.put('/admin/pengurus/' + target.id, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+      } else {
+        await api.post('/admin/pengurus', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+      }
+      fetchPengurus()
+      tutup()
+    } catch (err) {
+      console.error(err)
+      alert('Gagal menyimpan data pengurus.')
+    }
+  }
+
+  async function hapus() {
+    try {
+      await api.delete('/admin/pengurus/' + target.id)
+      fetchPengurus()
+      tutup()
+    } catch (err) {
+      console.error(err)
+      alert('Gagal menghapus pengurus.')
+    }
+  }
+
+  // Sorted by level then order_num for display
+  const sorted = [...pengurus].sort((a, b) => (a.level - b.level) || (a.order_num - b.order_num))
 
   // Parent options — semua level di atas level form
   const parentOptions = pengurus.filter(p => p.level < Number(form.level))
@@ -54,7 +98,7 @@ export default function PengurusAdminPage() {
       {/* Info bagan */}
       <div className="card p-4 bg-blue-50 border border-blue-100 text-sm text-blue-800">
         Data pengurus ditampilkan sebagai <strong>bagan organisasi</strong> di halaman publik.
-        Atur <strong>Level</strong> dan <strong>Atasan</strong> untuk menentukan posisi dalam bagan.
+        Atur <strong>Level</strong> dan <strong>Atasan</strong> untuk menentukan posisi dalam bagan. <strong>Ketua Umum</strong> dapat diberikan Quote yang akan tampil di halaman depan.
       </div>
 
       <div className="flex justify-end">
@@ -69,7 +113,7 @@ export default function PengurusAdminPage() {
       <div className="card table-wrapper">
         <table className="tbl">
           <thead>
-            <tr><th>Level</th><th>Nama</th><th>Jabatan</th><th>Atasan</th><th>Urutan</th><th>Tampil</th><th>Aksi</th></tr>
+            <tr><th>Foto</th><th>Level</th><th>Nama</th><th>Jabatan</th><th>Atasan</th><th>Urutan</th><th>Aksi</th></tr>
           </thead>
           <tbody>
             {sorted.length === 0 ? (
@@ -79,6 +123,13 @@ export default function PengurusAdminPage() {
               return (
                 <tr key={p.id}>
                   <td>
+                    {p.foto_url ? (
+                      <img src={p.foto_url} alt={p.nama} className="w-10 h-10 rounded-full object-cover border" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">No Img</div>
+                    )}
+                  </td>
+                  <td>
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${levelColor[p.level] || 'bg-gray-100 text-gray-600'}`}>
                       L{p.level}
                     </span>
@@ -86,13 +137,7 @@ export default function PengurusAdminPage() {
                   <td className="font-medium text-gray-800">{p.nama}</td>
                   <td className="text-xs text-gray-600">{p.jabatan}</td>
                   <td className="text-xs text-gray-500">{parent?.jabatan || <span className="text-gray-300">—</span>}</td>
-                  <td className="text-center text-xs text-gray-400 font-mono">{p.urutan}</td>
-                  <td>
-                    <button onClick={() => togglePublish(p.id)}
-                      className={`text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${p.published ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {p.published ? 'Tampil' : 'Sembunyikan'}
-                    </button>
-                  </td>
+                  <td className="text-center text-xs text-gray-400 font-mono">{p.order_num}</td>
                   <td>
                     <div className="flex gap-1">
                       <button onClick={() => buka(p)}
@@ -119,7 +164,15 @@ export default function PengurusAdminPage() {
       {/* Modal Form */}
       <Modal isOpen={modal === 'form'} onClose={tutup}
         title={target ? 'Edit Pengurus' : 'Tambah Pengurus'} size="md">
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+          <div>
+            <label className="label-field">Foto Profil</label>
+            <input type="file" className="input-field text-sm" accept="image/*"
+              onChange={e => setFileFoto(e.target.files[0])} />
+            {target?.foto_url && !fileFoto && (
+              <p className="text-xs text-gray-500 mt-1">Biarkan kosong jika tidak ingin mengubah foto saat ini.</p>
+            )}
+          </div>
           <div>
             <label className="label-field">Nama Lengkap *</label>
             <input className="input-field" value={form.nama}
@@ -142,8 +195,8 @@ export default function PengurusAdminPage() {
             </div>
             <div>
               <label className="label-field">Urutan Tampil</label>
-              <input type="number" className="input-field" value={form.urutan}
-                min={1} onChange={e => set('urutan', e.target.value)} />
+              <input type="number" className="input-field" value={form.order_num}
+                min={0} onChange={e => set('order_num', Number(e.target.value))} />
             </div>
           </div>
           {Number(form.level) > 1 && (
@@ -163,6 +216,11 @@ export default function PengurusAdminPage() {
             <input className="input-field" value={form.periode}
               onChange={e => set('periode', e.target.value)} placeholder="Contoh: 2022-2026" />
           </div>
+          <div>
+            <label className="label-field">Quotes (Khusus Ketua Umum)</label>
+            <textarea className="input-field min-h-[80px]" value={form.quotes || ''}
+              onChange={e => set('quotes', e.target.value)} placeholder="Tulis quote untuk ditampilkan di landing page..." />
+          </div>
         </div>
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100">
           <button onClick={tutup} className="btn-secondary">Batal</button>
@@ -177,7 +235,7 @@ export default function PengurusAdminPage() {
         </p>
         <div className="flex justify-end gap-2 mt-6">
           <button onClick={tutup} className="btn-secondary">Batal</button>
-          <button onClick={() => { hapus(target.id); tutup() }} className="btn-danger">Hapus</button>
+          <button onClick={hapus} className="btn-danger">Hapus</button>
         </div>
       </Modal>
     </div>

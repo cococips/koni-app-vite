@@ -485,3 +485,21 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `pengurus`
+--
+
+CREATE TABLE `pengurus` (
+  `id` varchar(36) NOT NULL,
+  `nama` varchar(150) NOT NULL,
+  `jabatan` varchar(100) NOT NULL,
+  `quotes` text,
+  `foto_url` varchar(255),
+  `order_num` int DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+ALTER TABLE `pengurus` ADD PRIMARY KEY (`id`);

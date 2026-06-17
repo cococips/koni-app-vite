@@ -26,3 +26,11 @@ dist-ssr
 # Dummy files
 dummy.md
 
+.agents/skills/gsap-core/SKILL.md
+.agents/skills/gsap-frameworks/SKILL.md
+.agents/skills/gsap-performance/SKILL.md
+.agents/skills/gsap-plugins/SKILL.md
+.agents/skills/gsap-react/SKILL.md
+.agents/skills/gsap-scrolltrigger/SKILL.md
+.agents/skills/gsap-timeline/SKILL.md
+.agents/skills/gsap-utils/SKILL.md

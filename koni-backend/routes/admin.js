@@ -128,6 +128,47 @@ router.post('/create-account', ...guard, async (req, res, next) => {
   } catch(err){next(err)}
 })
 
+// PENGURUS
+const upload = require('../middleware/upload')
+router.get('/pengurus', ...guard, async (req, res, next) => {
+  try { const [rows] = await db.query('SELECT * FROM pengurus ORDER BY order_num ASC'); res.json({ success: true, data: rows }) } catch(err){next(err)}
+})
+router.post('/pengurus', ...guard, (req, res, next) => {
+  req.uploadSubdir = 'pengurus'
+  next()
+}, upload.single('foto'), async (req, res, next) => {
+  try {
+    const { nama, jabatan, quotes, order_num, periode, level, parent_id } = req.body
+    if (!nama || !jabatan) return res.status(400).json({ success: false, message: 'Nama dan jabatan wajib.' })
+    const id = uuid()
+    const foto_url = req.file ? `http://localhost:5000/uploads/pengurus/${req.file.filename}` : null
+    await db.query('INSERT INTO pengurus (id,nama,jabatan,quotes,foto_url,order_num,periode,level,parent_id) VALUES (?,?,?,?,?,?,?,?,?)', 
+      [id,nama,jabatan,quotes||null,foto_url,order_num||0,periode||'2022-2026',level||2,parent_id||null])
+    res.status(201).json({ success: true, id, foto_url })
+  } catch(err){next(err)}
+})
+router.put('/pengurus/:id', ...guard, (req, res, next) => {
+  req.uploadSubdir = 'pengurus'
+  next()
+}, upload.single('foto'), async (req, res, next) => {
+  try {
+    const { nama, jabatan, quotes, order_num, periode, level, parent_id } = req.body
+    const id = req.params.id
+    if (req.file) {
+      const foto_url = `http://localhost:5000/uploads/pengurus/${req.file.filename}`
+      await db.query('UPDATE pengurus SET nama=?,jabatan=?,quotes=?,foto_url=?,order_num=?,periode=?,level=?,parent_id=? WHERE id=?', 
+        [nama,jabatan,quotes||null,foto_url,order_num||0,periode||'2022-2026',level||2,parent_id||null,id])
+    } else {
+      await db.query('UPDATE pengurus SET nama=?,jabatan=?,quotes=?,order_num=?,periode=?,level=?,parent_id=? WHERE id=?', 
+        [nama,jabatan,quotes||null,order_num||0,periode||'2022-2026',level||2,parent_id||null,id])
+    }
+    res.json({ success: true })
+  } catch(err){next(err)}
+})
+router.delete('/pengurus/:id', ...guard, async (req, res, next) => {
+  try { await db.query('DELETE FROM pengurus WHERE id=?',[req.params.id]); res.json({success:true}) } catch(err){next(err)}
+})
+
 
 router.get('/prestasi', ...guard, async (req, res, next) => {
   try {
@@ -142,7 +183,6 @@ router.get('/prestasi', ...guard, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-const upload = require('../middleware/upload')
 
 // GET /api/admin/stats — ringkasan untuk dashboard admin
 router.get('/stats', ...guard, async (req, res, next) => {

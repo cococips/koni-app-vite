@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 
 import { AuthProvider }       from './context/AuthContext'
 import PrivateRoute           from './components/common/PrivateRoute'
@@ -51,9 +52,20 @@ function RoleRoute({ role, children }) {
   return <PrivateRoute allowedRoles={[role]}>{children}</PrivateRoute>
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
+  return null
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         {/* Context konten landing page tetap pakai localStorage */}
         <BeritaProvider>

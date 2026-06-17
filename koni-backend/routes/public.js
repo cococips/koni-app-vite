@@ -25,4 +25,15 @@ router.get('/stats', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
+/**
+ * GET /api/public/pengurus
+ * Ambil daftar pengurus publik
+ */
+router.get('/pengurus', async (req, res, next) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM pengurus ORDER BY order_num ASC');
+    res.json({ success: true, data: rows })
+  } catch(err){next(err)}
+})
+
 module.exports = router

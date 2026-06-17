@@ -1,87 +1,45 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { publicApi } from '../api/axios'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+import { Draggable } from 'gsap/Draggable'
 // Konten publik tetap dari Context (localStorage dikelola admin)
-import { useBerita }     from '../context/BeritaContext'
+import { useBerita } from '../context/BeritaContext'
 import { usePengumuman } from '../context/PengumumanContext'
-import { useKegiatan }   from '../context/KegiatanContext'
-import { useGaleri }     from '../context/GaleriContext'
+import { useKegiatan } from '../context/KegiatanContext'
+import { useGaleri } from '../context/GaleriContext'
 import { formatTanggal } from '../utils/helpers'
 
-/* ─── Ticker CSS ─────────────────────────────────────────────────────────── */
-const TICKER_CSS = `
-  @keyframes ticker-move { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-  .ticker-track { animation: ticker-move 35s linear infinite; }
-  .ticker-wrap:hover .ticker-track { animation-play-state: paused; }
-`
+gsap.registerPlugin(ScrollTrigger, useGSAP, Draggable)
 
-/* ─── Ticker Pengumuman ──────────────────────────────────────────────────── */
-function PengumumanTicker({ items }) {
-  const navigate = useNavigate()
-  const [selected, setSelected] = useState(null)
-  if (!items.length) return null
+/* ─── Animated Counter ────────────────────────────────────────────────────── */
+function AnimatedCounter({ value, duration = 2 }) {
+  const ref = useRef(null)
+  const countRef = useRef({ val: 0 })
 
-  return (
-    <>
-      <div className="bg-red-600 text-white flex items-stretch overflow-hidden" style={{ minHeight: 38 }}>
-        <div className="flex-shrink-0 bg-red-800 px-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest z-10 whitespace-nowrap">
-          <span className="w-1.5 h-1.5 bg-yellow-300 rounded-full animate-pulse" />
-          Pengumuman
-        </div>
-        <div className="flex-1 overflow-hidden ticker-wrap cursor-pointer">
-          <div className="ticker-track flex items-center h-full whitespace-nowrap">
-            {[0, 1].map(n => (
-              <span key={n} className="inline-flex items-center gap-8 px-8 py-2 text-sm">
-                {items.map((p, i) => (
-                  <span key={`${n}-${p.id}`} className="inline-flex items-center gap-6">
-                    <button onClick={() => setSelected(p)} className="hover:text-yellow-200 hover:underline transition-colors">
-                      {p.judul}
-                    </button>
-                    {i < items.length - 1 && <span className="text-red-400">·</span>}
-                  </span>
-                ))}
-              </span>
-            ))}
-          </div>
-        </div>
-        <button onClick={() => navigate('/pengumuman')}
-          className="flex-shrink-0 bg-red-800 hover:bg-red-900 px-4 text-xs font-semibold whitespace-nowrap transition-colors">
-          Lihat semua
-        </button>
-      </div>
+  useGSAP(() => {
+    if (!ref.current || value === 0) return
+    gsap.to(countRef.current, {
+      val: value,
+      duration,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: ref.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+        once: true,
+      },
+      onUpdate: () => {
+        if (ref.current) {
+          ref.current.textContent = Math.round(countRef.current.val)
+        }
+      }
+    })
+  }, { dependencies: [value] })
 
-      {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelected(null)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className={`px-6 py-4 flex items-start justify-between gap-4 ${selected.tipe === 'penting' ? 'bg-red-600' : 'bg-gray-800'}`}>
-              <div>
-                <p className="text-xs font-semibold text-white/60 uppercase tracking-widest mb-1">
-                  {selected.tipe === 'penting' ? 'Penting' : 'Informasi'}
-                </p>
-                <h3 className="text-white font-bold leading-snug">{selected.judul}</h3>
-              </div>
-              <button onClick={() => setSelected(null)} className="text-white/60 hover:text-white mt-0.5 flex-shrink-0">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="px-6 py-5">
-              {selected.isi_html
-                ? <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: selected.isi_html }} />
-                : <p className="text-gray-700 text-sm leading-relaxed">{selected.isi}</p>
-              }
-              <div className="flex items-center justify-between mt-5 pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-400">{formatTanggal(selected.created_at)}</p>
-                <Link to="/pengumuman" className="text-xs text-red-600 font-semibold hover:underline">Lihat semua</Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  )
+  return <span ref={ref}>0</span>
 }
 
 /* ─── Section Header ─────────────────────────────────────────────────────── */
@@ -101,92 +59,649 @@ function SectionHeader({ tag, title, to }) {
 export default function LandingPage() {
   const navigate = useNavigate()
 
+  // ── Refs for GSAP scoping ─────────────────────────────────────────────────
+  const mainRef = useRef(null)
+  const heroRef = useRef(null)
+  const tentangRef = useRef(null)
+  const visiMisiRef = useRef(null)
+  const statsRef = useRef(null)
+  const caborRef = useRef(null)
+  const eventRef = useRef(null)
+  const beritaRef = useRef(null)
+  const galeriRef = useRef(null)
+
   // ── Data statistik dari API/database ──────────────────────────────────────
-  // [PRESENTASI: ORANG 4] State untuk menyimpan statistik real-time dari database
   const [stats, setStats] = useState({
     totalAtlet: 0, totalCabor: 0, totalMedali: 0, medaliEmas: 0,
     caborAktif: []
   })
   const [loadingStats, setLoadingStats] = useState(true)
+  const [ketuaUmum, setKetuaUmum] = useState(null)
 
-useEffect(() => {
+  // ── Ambil statistik dari API + Data Pengurus Publik ────────────────────────
+  useEffect(() => {
     async function loadStats() {
       try {
-        // [PRESENTASI: ORANG 4] Fetch statistik langsung dari database via API
-        // Jika pakai Promise.all bisa memanggil multiple endpoint sekaligus secara paralel
         const response = await publicApi.get('/public/stats')
         const data = response.data.data
 
-        // Masukkan data dari backend ke dalam state
         setStats({
-          totalAtlet:  data.totalAtlet || 0,
-          totalCabor:  data.totalCabor || 0,
+          totalAtlet: data.totalAtlet || 0,
+          totalCabor: data.totalCabor || 0,
           totalMedali: data.totalPrestasi || 0,
-          medaliEmas:  data.medaliEmas || 0,
-          caborAktif:  data.caborAktif || [],
+          medaliEmas: data.medaliEmas || 0,
+          caborAktif: data.caborAktif || [],
         })
       } catch (error) {
         console.error("Gagal mengambil data statistik publik:", error)
-        // Kalau backend mati atau gagal, biarkan 0 — tidak crash
       }
       setLoadingStats(false)
+
+      try {
+        const pengurusRes = await publicApi.get('/public/pengurus')
+        if (pengurusRes.data.success) {
+          const ketum = pengurusRes.data.data.find(p => p.jabatan.toLowerCase().includes('ketua umum'))
+          if (ketum) setKetuaUmum(ketum)
+        }
+      } catch (err) {
+        console.error("Gagal mengambil data pengurus:", err)
+      }
     }
     loadStats()
   }, [])
 
   // ── Konten publik dari Context (dikelola admin lewat localStorage) ─────────
-  const { beritaPublished }       = useBerita()
+  const { beritaPublished } = useBerita()
   const { published: pengumuman } = usePengumuman()
-  const { published: kegiatan }   = useKegiatan()
-  const { published: galeri }     = useGaleri()
+  const { published: kegiatan } = useKegiatan()
+  const { published: galeri } = useGaleri()
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // GSAP ANIMATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── Hero entrance timeline ────────────────────────────────────────────────
+  useGSAP(() => {
+    const tl = gsap.timeline({
+      defaults: { duration: 0.8, ease: "power3.out" },
+    })
+
+    tl.from(".hero-badge", {
+      autoAlpha: 0,
+      y: 20,
+      scale: 0.95,
+      duration: 0.6,
+    })
+      .from(".hero-title-line", {
+        yPercent: 100,
+        autoAlpha: 0,
+        stagger: 0.15,
+        duration: 0.8,
+        ease: "power4.out",
+      }, "-=0.3")
+      .from(".hero-subtitle", {
+        autoAlpha: 0,
+        y: 20,
+        duration: 0.8,
+      }, "-=0.4")
+      .from(".hero-cta", {
+        autoAlpha: 0,
+        y: 15,
+        stagger: 0.1,
+        duration: 0.6,
+      }, "-=0.5")
+      .from(".hero-scroll-indicator", {
+        autoAlpha: 0,
+        y: 15,
+        duration: 0.6,
+      }, "-=0.3")
+
+    // Loop vertical animation for scroll dot
+    gsap.to(".hero-scroll-dot", {
+      y: 28,
+      duration: 1.5,
+      repeat: -1,
+      ease: "power2.inOut",
+    })
+  }, { scope: heroRef })
+
+  // ── Tentang section — scroll reveals ──────────────────────────────────────
+  useGSAP(() => {
+    if (!tentangRef.current) return
+
+    gsap.from(".tentang-badge-container", {
+      autoAlpha: 0,
+      y: 20,
+      duration: 0.6,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: tentangRef.current,
+        start: "top 90%",
+        toggleActions: "play none none none",
+      },
+    })
+
+    gsap.from(".tentang-big-text", {
+      autoAlpha: 0,
+      y: 40,
+      duration: 0.8,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: tentangRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      },
+    })
+
+    gsap.from(".tentang-desc", {
+      autoAlpha: 0,
+      y: 30,
+      duration: 0.8,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: tentangRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      },
+    })
+
+    gsap.from(".tentang-cta", {
+      autoAlpha: 0,
+      y: 20,
+      duration: 0.6,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: tentangRef.current,
+        start: "top 90%",
+        toggleActions: "play none none none",
+      },
+    })
+  }, { scope: tentangRef })
+
+  // ── Ketua Umum Quote animation ────────────────────────────────────────────
+  useGSAP(() => {
+    if (ketuaUmum && tentangRef.current) {
+      gsap.fromTo('.ketua-quote-card',
+        { autoAlpha: 0, scale: 0.95, y: 30 },
+        {
+          autoAlpha: 1,
+          scale: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: tentangRef.current.querySelector('.ketua-quote-card') || tentangRef.current,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          }
+        }
+      )
+    }
+  }, { dependencies: [ketuaUmum], scope: tentangRef })
+
+  // ── Visi & Misi cards stagger ─────────────────────────────────────────────
+  useGSAP(() => {
+    if (!visiMisiRef.current) return
+
+    gsap.from(".vm-header", {
+      autoAlpha: 0,
+      y: 30,
+      duration: 0.7,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: visiMisiRef.current,
+        start: "top 88%",
+        toggleActions: "play none none none",
+      },
+    })
+
+    gsap.from(".vm-card", {
+      autoAlpha: 0,
+      y: 40,
+      stagger: 0.15,
+      duration: 0.8,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: visiMisiRef.current.querySelector('.vm-grid') || visiMisiRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      },
+    })
+  }, { scope: visiMisiRef })
+
+  // ── Stats section — scroll-driven timeline with stagger ───────────────────
+  useGSAP(() => {
+    if (!statsRef.current) return
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: statsRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      }
+    })
+
+    tl.from(".stats-header", {
+      autoAlpha: 0,
+      y: 40,
+      duration: 0.8,
+      ease: "power3.out",
+    })
+      .from(".stat-item", {
+        autoAlpha: 0,
+        y: 40,
+        stagger: 0.1,
+        duration: 0.6,
+        ease: "power2.out",
+      }, "-=0.4")
+      .from(".stat-icon", {
+        scale: 0,
+        rotation: -15,
+        stagger: 0.1,
+        duration: 0.6,
+        ease: "power3.out",
+      }, "-=0.5")
+  }, { scope: statsRef })
+
+  // ── Cabor section header ──────────────────────────────────────────────────
+  useGSAP(() => {
+    if (!caborRef.current) return
+
+    gsap.from(".cabor-header", {
+      autoAlpha: 0,
+      y: 30,
+      duration: 0.7,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: caborRef.current,
+        start: "top 88%",
+        toggleActions: "play none none none",
+      },
+    })
+  }, { scope: caborRef })
+
+  // ── Cabor tags — animate AFTER async data loads ───────────────────────────
+  useEffect(() => {
+    if (stats.caborAktif.length === 0 || !caborRef.current) return
+
+    const timer = setTimeout(() => {
+      const tags = caborRef.current.querySelectorAll('.cabor-tag')
+      if (tags.length === 0) return
+
+      gsap.fromTo(tags,
+        { autoAlpha: 0, y: 15, scale: 0.95 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          scale: 1,
+          stagger: 0.03,
+          duration: 0.4,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: caborRef.current.querySelector('.cabor-grid') || caborRef.current,
+            start: "top 88%",
+            toggleActions: "play none none none",
+          },
+        }
+      )
+      ScrollTrigger.refresh()
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [stats.caborAktif])
+
+  // ── Event section ─────────────────────────────────────────────────────────
+  useGSAP(() => {
+    if (!eventRef.current) return
+
+    gsap.from(".event-header", {
+      autoAlpha: 0,
+      y: 40,
+      duration: 0.8,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: eventRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      },
+    })
+
+    gsap.from(".event-item", {
+      autoAlpha: 0,
+      x: -40,
+      stagger: 0.15,
+      duration: 0.7,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: eventRef.current.querySelector('.event-list') || eventRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      },
+    })
+  }, { scope: eventRef })
+
+  // ── Berita section ────────────────────────────────────────────────────────
+  useGSAP(() => {
+    if (!beritaRef.current) return
+
+    gsap.from(".berita-header", {
+      autoAlpha: 0,
+      y: 40,
+      duration: 0.8,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: beritaRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      },
+    })
+
+    gsap.from(".berita-featured", {
+      autoAlpha: 0,
+      y: 60,
+      scale: 0.98,
+      duration: 1,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: beritaRef.current.querySelector('.berita-featured') || beritaRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      },
+    })
+
+    gsap.from(".berita-side-item", {
+      autoAlpha: 0,
+      x: 40,
+      stagger: 0.15,
+      duration: 0.7,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: beritaRef.current.querySelector('.berita-side') || beritaRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      },
+    })
+  }, { scope: beritaRef })
+
+  // ── Galeri section ────────────────────────────────────────────────────────
+  useGSAP(() => {
+    if (!galeriRef.current) return
+
+    gsap.from(".galeri-header", {
+      autoAlpha: 0,
+      y: 40,
+      duration: 0.8,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: galeriRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      },
+    })
+
+    gsap.from(".galeri-item", {
+      autoAlpha: 0,
+      scale: 0.85,
+      y: 30,
+      stagger: {
+        amount: 0.6,
+        from: "random",
+      },
+      duration: 0.7,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: galeriRef.current.querySelector('.galeri-grid') || galeriRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+      },
+    })
+  }, { scope: galeriRef })
 
   return (
-    <div className="bg-white">
-      <style>{TICKER_CSS}</style>
-      <PengumumanTicker items={pengumuman} />
+    <div className="bg-white" ref={mainRef}>
+
 
       {/* ── HERO ── */}
-      <section className="relative bg-gray-900 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-red-950" />
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, #ef4444 0%, transparent 60%)' }} />
-
-        <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-28 grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 border border-white/20 text-white/70 text-xs px-3 py-1.5 rounded-full mb-6">
-              <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-              Komite Olahraga Nasional Indonesia
+      <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-center overflow-hidden bg-white py-16">
+        <div className="relative max-w-6xl mx-auto px-4 z-10 w-full flex-1 flex flex-col justify-center">
+          <div className="text-center max-w-3xl mx-auto py-12 md:py-20">
+            <div className="hero-badge inline-flex items-center gap-3 text-brand-600 text-xs font-bold uppercase tracking-[0.2em] mb-8">
+              <span className="w-8 h-px bg-brand-600"></span>
+              KONI Kabupaten Banyumas
             </div>
-            <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-5">
-              Membina Atlet,<br />
-              Mencetak Juara,<br />
-              <span className="text-red-500">Harumkan Banyumas.</span>
+            <h1 className="hero-title text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-8 flex flex-col items-center justify-center">
+              <span className="block overflow-hidden h-[1.2em]">
+                <span className="hero-title-line block">Membina Atlet.</span>
+              </span>
+              <span className="block overflow-hidden h-[1.2em] mt-1 md:mt-2">
+                <span className="hero-title-line block">Mencetak <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-400">Juara.</span></span>
+              </span>
             </h1>
-            <p className="text-gray-300 leading-relaxed mb-8 max-w-md text-sm">
-              KONI Kabupaten Banyumas hadir untuk membina dan mengembangkan olahraga prestasi menuju kejayaan di tingkat regional dan nasional.
+            <p className="hero-subtitle text-lg md:text-xl text-slate-500 leading-relaxed mb-12 max-w-2xl mx-auto">
+              Sistem Informasi terpadu untuk pembinaan dan pengembangan olahraga prestasi menuju kejayaan Banyumas di tingkat regional dan nasional.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Link to="/kegiatan" className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-colors">Lihat Event</Link>
-              <Link to="/berita"   className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20 transition-colors">Berita Terkini</Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link to="/kegiatan" className="hero-cta w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-500 hover:shadow-glow text-white font-bold rounded-2xl transition-all duration-300 transform hover:-translate-y-1">
+                Lihat Event Terbaru
+              </Link>
+              <Link to="/berita" className="hero-cta w-full sm:w-auto px-8 py-4 bg-white text-slate-700 hover:text-brand-600 font-bold rounded-2xl border border-slate-200 hover:border-brand-200 shadow-sm transition-all duration-300">
+                Baca Berita
+              </Link>
             </div>
           </div>
+        </div>
 
-          {/* Stats — dari API */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur">
-            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">
-              Statistik KONI Banyumas {loadingStats && <span className="text-white/30">(memuat...)</span>}
+        {/* Elegant Scroll Down Indicator */}
+        <div className="hero-scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-400 select-none cursor-pointer" onClick={() => tentangRef.current?.scrollIntoView({ behavior: 'smooth' })}>
+          <span className="text-[10px] font-bold tracking-[0.25em] uppercase text-slate-400">Gulir</span>
+          <div className="w-[1px] h-10 bg-slate-100 relative overflow-hidden">
+            <div className="hero-scroll-dot absolute top-0 left-0 w-full h-3 bg-slate-400 rounded-full"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TENTANG KAMI ── */}
+      <section ref={tentangRef} className="relative bg-slate-50 py-28 md:py-36 overflow-hidden border-t border-slate-100">
+        <div className="relative max-w-6xl mx-auto px-4 z-10">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-center">
+            {/* Left Column: Text Content */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="tentang-badge-container flex items-center gap-3 text-brand-600 text-xs font-bold uppercase tracking-[0.2em]">
+                <span className="w-8 h-px bg-brand-600"></span>
+                <span>Tentang Kami</span>
+              </div>
+
+              <h2 className="tentang-big-text text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                Mewujudkan Prestasi Olahraga Kabupaten Banyumas
+              </h2>
+
+              <p className="tentang-desc text-base md:text-lg text-slate-500 leading-relaxed font-medium">
+                Komite Olahraga Nasional Indonesia (KONI) Kabupaten Banyumas berkomitmen penuh sebagai induk organisasi pembinaan olahraga prestasi daerah yang profesional, transparan, dan berkesinambungan untuk melahirkan atlet-atlet unggul di kancah nasional maupun internasional.
+              </p>
+
+              <div className="tentang-cta flex items-center pt-2">
+                <Link to="/pengurus" className="group inline-flex items-center gap-3 bg-white hover:bg-brand-50 px-6 py-3.5 rounded-2xl border border-slate-200 hover:border-brand-200 shadow-sm font-bold text-sm text-slate-700 hover:text-brand-600 transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-soft">
+                  Lihat Susunan Pengurus
+                  <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Column: Ketua Umum Quote */}
+            <div className="lg:col-span-5 flex justify-center mt-10 lg:mt-0">
+              {ketuaUmum ? (
+                <div className="ketua-quote-card relative w-full max-w-md rounded-3xl bg-white p-8 shadow-soft border border-slate-100 flex flex-col items-center text-center overflow-hidden transition-all duration-500 hover:border-slate-200">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50/50 rounded-bl-full -z-10"></div>
+                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-slate-50/50 rounded-tr-full -z-10"></div>
+
+                  <div className="relative w-32 h-32 mb-6">
+                    <div className="absolute inset-0 rounded-full border-4 border-white shadow-md bg-slate-100 z-10 overflow-hidden">
+                      {ketuaUmum.foto_url ? (
+                        <img src={ketuaUmum.foto_url} alt={ketuaUmum.nama} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-300">
+                          <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute -inset-1 rounded-full border border-slate-200"></div>
+                  </div>
+
+                  <svg className="w-8 h-8 text-slate-200 mb-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                  </svg>
+
+                  <p className="text-sm text-slate-600 italic font-medium leading-relaxed mb-6">
+                    "{ketuaUmum.quotes || 'Mari bersama-sama kita wujudkan olahraga Banyumas yang berprestasi dan membanggakan di tingkat nasional maupun internasional.'}"
+                  </p>
+
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 text-lg">{ketuaUmum.nama}</h4>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">{ketuaUmum.jabatan}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative w-full max-w-[380px] aspect-square rounded-3xl bg-white p-6 shadow-soft border border-slate-100 flex items-center justify-center overflow-hidden">
+                  <div className="absolute inset-0 bg-slate-50/20 -z-10"></div>
+                  <div className="text-center font-bold text-slate-400">Loading Quote...</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── VISI & MISI ── */}
+      <section ref={visiMisiRef} className="relative bg-white py-28 md:py-36 overflow-hidden border-t border-slate-100">
+        <div className="relative max-w-6xl mx-auto px-4 z-10">
+          <div className="vm-header text-center mb-16">
+            <div className="inline-flex items-center gap-3 text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-3">
+              <span className="w-8 h-px bg-slate-300"></span>
+              <span>PRINSIP & TUJUAN</span>
+              <span className="w-8 h-px bg-slate-300"></span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Visi & Misi Organisasi
+            </h2>
+            <p className="text-sm text-slate-500 mt-2 max-w-lg mx-auto">
+              Arah kebijakan dan komitmen nyata KONI Kabupaten Banyumas dalam jangka panjang.
             </p>
-            <div className="grid grid-cols-2 gap-4">
+          </div>
+
+          <div className="vm-grid grid md:grid-cols-2 gap-8">
+            <div className="vm-card bg-white rounded-3xl p-10 md:p-12 border border-slate-100 shadow-sm transition-all duration-300 relative overflow-hidden">
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="w-16 h-16 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-center justify-center flex-shrink-0">
+                  <img src="/visi_icon.png" alt="Visi Icon" className="w-10 h-10 object-contain" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] block mb-2">VISI</span>
+                  <p className="text-base md:text-lg font-semibold text-slate-700 leading-relaxed">
+                    Membangun tata kelola pembinaan olahraga prestasi yang profesional, transparan, dan berkelanjutan menuju kejayaan daerah.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="vm-card bg-white rounded-3xl p-10 md:p-12 border border-slate-100 shadow-sm transition-all duration-300 relative overflow-hidden">
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="w-16 h-16 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-center justify-center flex-shrink-0">
+                  <img src="/misi_icon.png" alt="Misi Icon" className="w-10 h-10 object-contain" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] block mb-2">MISI</span>
+                  <p className="text-base md:text-lg font-semibold text-slate-700 leading-relaxed">
+                    Meningkatkan kualitas SDM kepelatihan, sarana prasarana penunjang, serta menyelenggarakan kompetisi berjenjang secara masif.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STATISTIK ── */}
+      <section ref={statsRef} className="py-24 md:py-32 bg-slate-50 border-t border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="stats-header text-center mb-16">
+            <div className="flex items-center justify-center gap-3 text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-3">
+              <span className="w-4 h-px bg-slate-300"></span>
+              <span>PENCAPAIAN DAERAH</span>
+              <span className="w-4 h-px bg-slate-300"></span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Statistik KONI Kabupaten Banyumas
+            </h2>
+            <p className="text-sm text-slate-500 mt-2 max-w-xl mx-auto">
+              Rangkuman pencapaian pembinaan atlet, cabang olahraga aktif, serta medali prestasi.
+            </p>
+          </div>
+
+          <div className="stats-grid max-w-5xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-12">
               {[
-                { value: stats.totalAtlet,  label: 'Total Atlet',     sub: 'terdaftar'  },
-                { value: stats.totalCabor,  label: 'Cabang Olahraga', sub: 'aktif'      },
-                { value: stats.totalMedali, label: 'Total Prestasi',  sub: 'tercatat'   },
-                { value: stats.medaliEmas,  label: 'Medali Emas',     sub: 'bergengsi'  },
-              ].map(s => (
-                <div key={s.label} className="text-center py-4 border border-white/10 rounded-xl">
-                  <p className="text-3xl font-black text-white">{s.value}</p>
-                  <p className="text-sm text-white/70 font-semibold mt-0.5">{s.label}</p>
-                  <p className="text-xs text-white/40">{s.sub}</p>
+                {
+                  value: stats.totalAtlet,
+                  label: 'Atlet Aktif',
+                  desc: 'Terdaftar & Dibina',
+                  icon: (
+                    <svg className="stat-icon w-8 h-8 text-slate-700 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="15" cy="4" r="2" />
+                      <path d="M7 20h4l1.5-6H10l1-4h3.5" />
+                      <path d="m17 10-2-3-3 1.5" />
+                      <path d="M15 14l2 5h3" />
+                    </svg>
+                  )
+                },
+                {
+                  value: stats.totalCabor,
+                  label: 'Cabang Olahraga',
+                  desc: 'Naungan Resmi',
+                  icon: (
+                    <svg className="stat-icon w-8 h-8 text-slate-700 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      <path d="M12 6v11" />
+                      <path d="M8.5 12h7" />
+                    </svg>
+                  )
+                },
+                {
+                  value: stats.totalMedali,
+                  label: 'Total Medali',
+                  desc: 'Prestasi Kumulatif',
+                  icon: (
+                    <svg className="stat-icon w-8 h-8 text-slate-700 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                      <path d="M4 22h16" />
+                      <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
+                      <path d="M12 2a5 5 0 0 0-5 5v3c0 2.2 1.8 4 4 4h2c2.2 0 4-1.8 4-4V7a5 5 0 0 0-5-5z" />
+                    </svg>
+                  )
+                },
+                {
+                  value: stats.medaliEmas,
+                  label: 'Medali Emas',
+                  desc: 'Peringkat Utama',
+                  icon: (
+                    <svg className="stat-icon w-8 h-8 text-slate-700 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="8" r="7" />
+                      <path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.12" />
+                      <path d="M12 5v6" />
+                      <path d="M9 8h6" />
+                    </svg>
+                  )
+                },
+              ].map((s, i) => (
+                <div key={s.label} className="stat-item flex flex-col items-center md:items-start group cursor-default">
+                  {s.icon}
+                  <p className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tighter mb-2">
+                    <AnimatedCounter value={s.value} duration={1.8 + i * 0.2} />
+                  </p>
+                  <p className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-1">{s.label}</p>
+                  <p className="text-[11px] font-medium text-slate-400">{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -194,57 +709,52 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* ── TENTANG ── */}
-      <section className="py-20 bg-white">
+      {/* ── CABANG OLAHRAGA ── */}
+      <section ref={caborRef} className="py-24 md:py-32 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <p className="text-xs font-semibold text-red-600 uppercase tracking-widest mb-2">Mengenal KONI lebih jauh</p>
-              <h2 className="text-3xl font-black text-gray-900 mb-4">Tentang KONI<br />Kabupaten Banyumas</h2>
-              <p className="text-gray-600 leading-relaxed mb-4 text-sm">
-                Komite Olahraga Nasional Indonesia (KONI) Kabupaten Banyumas merupakan induk organisasi pembinaan olahraga prestasi di tingkat kabupaten yang bertugas melakukan pengelolaan dan pengembangan olahraga daerah.
-              </p>
-              <p className="text-gray-600 leading-relaxed text-sm">
-                Bersama {stats.totalCabor} cabang olahraga aktif, KONI Banyumas berkomitmen mencetak atlet-atlet berprestasi yang siap bersaing di Porprov, PON, hingga ajang internasional.
-              </p>
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <div className="bg-red-50 border border-red-100 rounded-xl p-4">
-                  <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-2">Visi</p>
-                  <p className="text-xs text-gray-700 leading-relaxed">KONI Banyumas profesional dalam pembinaan olahraga prestasi.</p>
+          <div className="cabor-card bg-white rounded-3xl p-8 md:p-12 border border-slate-100 relative overflow-hidden">
+            <div className="cabor-header relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-slate-100 pb-8">
+              <div>
+                <div className="flex items-center gap-3 text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-3">
+                  <span className="w-8 h-px bg-slate-300"></span>
+                  <span>Cabang Olahraga</span>
                 </div>
-                <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                  <p className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Misi</p>
-                  <p className="text-xs text-gray-700 leading-relaxed">Meningkatkan kualitas pembinaan atlet secara terpadu dan berkesinambungan.</p>
-                </div>
+                <h3 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Pembinaan Cabang Olahraga
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  Daftar cabang olahraga aktif di bawah naungan KONI Kabupaten Banyumas.
+                </p>
               </div>
-              <Link to="/pengurus" className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-xl transition-colors">
-                Lihat Struktur Pengurus
-              </Link>
+              <div className="flex items-center gap-3 border-l border-slate-200 pl-4 py-1">
+                <div className="relative flex h-1.5 w-1.5">
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-slate-400"></span>
+                </div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.1em]">
+                  <span className="text-slate-900">{stats.caborAktif.length}</span> Cabor Terdaftar
+                </p>
+              </div>
             </div>
 
-            {/* Stat boxes + cabor */}
-            <div className="grid grid-cols-3 gap-4 text-center">
-              {[
-                { value: stats.totalCabor,  label: 'Cabang Olahraga' },
-                { value: stats.totalAtlet,  label: 'Atlet Terdaftar'  },
-                { value: stats.totalMedali, label: 'Total Prestasi'   },
-              ].map(s => (
-                <div key={s.label} className="py-6 border border-gray-100 rounded-2xl hover:border-red-200 hover:shadow-sm transition-all">
-                  <p className="text-4xl font-black text-red-600">{s.value}</p>
-                  <p className="text-xs text-gray-500 font-medium mt-1 leading-tight">{s.label}</p>
-                </div>
+            <div className="cabor-grid relative z-10 flex flex-wrap gap-3">
+              {stats.caborAktif.slice(0, 24).map((c, idx) => (
+                <span
+                  key={c.id || idx}
+                  className="cabor-tag inline-flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider bg-white border border-slate-100 px-4 py-2 rounded-full hover:border-slate-300 hover:text-slate-900 transition-all duration-300 cursor-default"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                  {c.nama}
+                </span>
               ))}
-              <div className="col-span-3 bg-gray-50 rounded-2xl p-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Beberapa Cabor Unggulan</p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {stats.caborAktif.slice(0, 10).map(c => (
-                    <span key={c.id} className="text-xs bg-white border border-gray-200 text-gray-700 px-2.5 py-1 rounded-full font-medium">{c.nama}</span>
-                  ))}
-                  {stats.caborAktif.length > 10 && (
-                    <span className="text-xs bg-red-600 text-white px-2.5 py-1 rounded-full font-medium">+{stats.caborAktif.length - 10} lainnya</span>
-                  )}
-                </div>
-              </div>
+
+              {stats.caborAktif.length > 24 && (
+                <Link to="/pengurus" className="inline-flex items-center gap-2 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 px-5 py-2.5 rounded-2xl hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-300 shadow-sm">
+                  +{stats.caborAktif.length - 24} Cabor Lainnya
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -252,37 +762,29 @@ useEffect(() => {
 
       {/* ── EVENT ── */}
       {kegiatan.length > 0 && (
-        <section className="py-20 bg-gray-50">
-          <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader tag="Event Olahraga" title="Event KONI" to="/kegiatan" />
-            <div className="grid md:grid-cols-3 gap-5">
-              {kegiatan.slice(0, 3).map(k => {
+        <section ref={eventRef} className="py-32 bg-slate-50 border-t border-slate-100">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="event-header flex items-end justify-between mb-16">
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">Agenda Kegiatan</h2>
+              <Link to="/kegiatan" className="text-sm font-bold text-brand-600 uppercase tracking-widest hover:text-brand-700">Lihat Semua →</Link>
+            </div>
+            <div className="event-list flex flex-col">
+              {kegiatan.slice(0, 4).map((k, i) => {
                 const today = new Date().toISOString().split('T')[0]
                 const isUpcoming = k.tanggal_mulai >= today || (k.tanggal_selesai && k.tanggal_selesai >= today)
                 return (
                   <div key={k.id} onClick={() => navigate('/kegiatan')}
-                    className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow group cursor-pointer">
-                    <div className={`h-44 relative flex items-center justify-center bg-gradient-to-br ${isUpcoming ? 'from-red-600 to-red-900' : 'from-gray-500 to-gray-700'}`}>
-                      <svg className="w-16 h-16 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <div className="absolute top-3 left-3">
-                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${isUpcoming ? 'bg-emerald-500 text-white' : 'bg-white/20 text-white'}`}>
-                          {isUpcoming ? 'Upcoming' : 'Selesai'}
-                        </span>
-                      </div>
+                    className={`event-item group flex flex-col md:flex-row md:items-center gap-4 md:gap-8 py-8 cursor-pointer border-slate-200 transition-colors hover:bg-slate-100/50 ${i !== 0 ? 'border-t' : ''}`}
+                  >
+                    <div className="md:w-48 flex-shrink-0">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
+                        {isUpcoming ? <span className="text-brand-600">Akan Datang</span> : 'Selesai'}
+                      </p>
+                      <p className="text-2xl font-black text-slate-900">{formatTanggal(k.tanggal_mulai)}</p>
                     </div>
-                    <div className="p-5">
-                      <h3 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-red-600 transition-colors leading-snug">{k.nama}</h3>
-                      <p className="text-xs text-gray-500 mb-1">{formatTanggal(k.tanggal_mulai)}</p>
-                      {k.lokasi && (
-                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
-                          <svg className="w-3.5 h-3.5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          </svg>
-                          {k.lokasi}
-                        </div>
-                      )}
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-slate-900 leading-snug group-hover:text-brand-600 transition-colors mb-2">{k.nama}</h3>
+                      {k.lokasi && <p className="text-slate-500 font-medium">{k.lokasi}</p>}
                     </div>
                   </div>
                 )
@@ -294,34 +796,44 @@ useEffect(() => {
 
       {/* ── BERITA ── */}
       {beritaPublished.length > 0 && (
-        <section className="py-20 bg-white">
-          <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader tag="Informasi Terbaru" title="Berita Terkini" to="/berita" />
-            <div className="space-y-3">
-              {beritaPublished.slice(0, 4).map((b, i) => (
-                <Link key={b.id} to={`/berita/${b.id}`}
-                  className={`flex gap-4 items-start p-4 rounded-xl border hover:border-red-200 hover:shadow-sm transition-all group ${i === 0 ? 'border-red-100 bg-red-50' : 'border-gray-100 bg-white'}`}>
-                  <div className={`w-16 h-16 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden ${i === 0 ? 'bg-red-600' : 'bg-gray-200'}`}>
-                    {b.foto_url
-                      ? <img src={b.foto_url} alt={b.judul} className="w-full h-full object-cover" />
-                      : <svg className={`w-6 h-6 ${i === 0 ? 'text-white' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
-                        </svg>
-                    }
+        <section ref={beritaRef} className="py-32 bg-white">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="berita-header flex items-end justify-between mb-16 border-b border-slate-900 pb-6">
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">Berita Terkini</h2>
+              <Link to="/berita" className="text-sm font-bold text-slate-900 uppercase tracking-widest hover:text-brand-600">Semua Berita →</Link>
+            </div>
+            <div className="grid md:grid-cols-2 gap-12 md:gap-20">
+              {beritaPublished[0] && (
+                <Link to={`/berita/${beritaPublished[0].id}`} className="berita-featured group block">
+                  <div className="aspect-[4/3] bg-slate-100 mb-8 overflow-hidden">
+                    {beritaPublished[0].foto_url && (
+                      <img src={beritaPublished[0].foto_url} alt={beritaPublished[0].judul} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 grayscale group-hover:grayscale-0" />
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${i === 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>{b.kategori}</span>
-                      <span className="text-xs text-gray-400">{formatTanggal(b.created_at)}</span>
-                    </div>
-                    <h3 className={`font-bold text-sm leading-snug group-hover:text-red-600 transition-colors ${i === 0 ? 'text-red-800' : 'text-gray-800'}`}>{b.judul}</h3>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-1">{b.ringkasan}</p>
+                  <div className="flex items-center gap-4 mb-4">
+                    <span className="text-xs font-bold px-3 py-1.5 bg-slate-900 text-white uppercase tracking-widest">{beritaPublished[0].kategori}</span>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{formatTanggal(beritaPublished[0].created_at)}</span>
                   </div>
-                  <svg className="w-4 h-4 text-gray-300 group-hover:text-red-400 transition-colors flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <h3 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight mb-4 group-hover:text-brand-600 transition-colors">{beritaPublished[0].judul}</h3>
+                  <p className="text-slate-500 font-medium leading-relaxed line-clamp-3">{beritaPublished[0].ringkasan}</p>
                 </Link>
-              ))}
+              )}
+              <div className="berita-side flex flex-col gap-10 md:gap-12">
+                {beritaPublished.slice(1, 4).map(b => (
+                  <Link key={b.id} to={`/berita/${b.id}`} className="berita-side-item group flex flex-col sm:flex-row gap-6 items-start">
+                    <div className="w-full sm:w-32 aspect-[4/3] sm:aspect-square bg-slate-100 flex-shrink-0 overflow-hidden">
+                      {b.foto_url && <img src={b.foto_url} alt={b.judul} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-[10px] font-bold text-brand-600 uppercase tracking-widest">{b.kategori}</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formatTanggal(b.created_at)}</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900 leading-snug group-hover:text-brand-600 transition-colors">{b.judul}</h3>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -329,26 +841,22 @@ useEffect(() => {
 
       {/* ── GALERI ── */}
       {galeri.length > 0 && (
-        <section className="py-20 bg-gray-50">
+        <section ref={galeriRef} className="py-32 bg-slate-950 text-white">
           <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader tag="Dokumentasi" title="Galeri KONI" to="/galeri" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="galeri-header flex items-end justify-between mb-16">
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter">Dokumentasi</h2>
+              <Link to="/galeri" className="text-sm font-bold text-white uppercase tracking-widest hover:text-brand-400">Lihat Galeri →</Link>
+            </div>
+            <div className="galeri-grid grid grid-cols-2 md:grid-cols-4 gap-1">
               {galeri.slice(0, 8).map((g, i) => (
                 <div key={g.id} onClick={() => navigate('/galeri')}
-                  className={`group relative overflow-hidden rounded-2xl bg-gray-200 cursor-pointer ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}
-                  style={{ aspectRatio: i === 0 ? '1/1' : '4/3' }}>
-                  {g.url_foto
-                    ? <img src={g.url_foto} alt={g.judul} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                    : <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                      </div>
-                  }
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors" />
-                  <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform">
-                    <p className="text-white text-xs font-semibold">{g.judul}</p>
-                    <p className="text-white/70 text-xs">{g.kategori}</p>
+                  className={`galeri-item group relative overflow-hidden bg-slate-900 cursor-pointer ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}
+                  style={{ aspectRatio: '1/1' }}>
+                  {g.url_foto && <img src={g.url_foto} alt={g.judul} className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" loading="lazy" />}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute bottom-0 left-0 p-6 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                    <p className="text-brand-400 text-[10px] font-bold mb-2 uppercase tracking-widest">{g.kategori}</p>
+                    <p className="text-white text-lg font-bold leading-tight">{g.judul}</p>
                   </div>
                 </div>
               ))}
@@ -358,4 +866,5 @@ useEffect(() => {
       )}
     </div>
   )
+
 }
