@@ -48,20 +48,43 @@ function TabPresensi() {
   const statusColor = { hadir: 'bg-emerald-100 text-emerald-700', izin: 'bg-blue-100 text-blue-700', sakit: 'bg-amber-100 text-amber-700', alpha: 'bg-red-100 text-red-700' }
   const totalHadir = data.filter(d => d.status === 'hadir').length
 
+  const percentage = data.length > 0 ? Math.round((totalHadir / data.length) * 100) : 0
+
   return (
     <div className="space-y-6">
       {/* Ringkasan */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: 'Total Latihan', value: data.length, color: 'bg-blue-50 text-blue-700 border-blue-100' },
-          { label: 'Hadir', value: totalHadir, color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-          { label: 'Tidak Hadir', value: data.length - totalHadir, color: 'bg-red-50 text-red-700 border-red-100' },
-        ].map(s => (
-          <div key={s.label} className={`card p-4 border ${s.color} text-center`}>
-            <p className="text-2xl font-bold">{s.value}</p>
-            <p className="text-xs font-medium mt-0.5">{s.label}</p>
+      <div className="card p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-bold text-gray-800 text-lg">Ringkasan Kehadiran</h3>
+            <p className="text-sm text-gray-500">Tingkat partisipasi latihan</p>
           </div>
-        ))}
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg
+            ${percentage >= 80 ? 'bg-emerald-50 text-emerald-600 border-4 border-emerald-500' : 
+              percentage >= 50 ? 'bg-amber-50 text-amber-600 border-4 border-amber-500' : 
+              'bg-red-50 text-red-600 border-4 border-red-500'}`}>
+            {percentage}%
+          </div>
+        </div>
+        
+        <div className="w-full bg-gray-100 rounded-full h-2 mb-6 overflow-hidden">
+          <div className={`h-full rounded-full transition-all duration-1000 ${
+            percentage >= 80 ? 'bg-emerald-500' : percentage >= 50 ? 'bg-amber-500' : 'bg-red-500'
+          }`} style={{ width: `${percentage}%` }}></div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: 'Total Latihan', value: data.length, color: 'bg-blue-50 text-blue-700 border-blue-100' },
+            { label: 'Hadir', value: totalHadir, color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+            { label: 'Tidak Hadir', value: data.length - totalHadir, color: 'bg-red-50 text-red-700 border-red-100' },
+          ].map(s => (
+            <div key={s.label} className={`p-4 border rounded-xl text-center ${s.color}`}>
+              <p className="text-2xl font-bold">{s.value}</p>
+              <p className="text-xs font-medium mt-0.5">{s.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Jadwal mendatang */}
